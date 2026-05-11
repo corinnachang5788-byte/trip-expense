@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- Firebase SDK -->
@@ -486,10 +485,18 @@
     <div style="flex:1"><h1 id="album-title">旅遊相片簿</h1><div class="top-sub" id="album-sub"></div></div>
   </div>
   <div class="album-wrap">
-    <button class="album-upload-btn" onclick="document.getElementById('album-file-inp').click()">
-      📷 上傳相片 / 直接拍照
-    </button>
-    <input type="file" id="album-file-inp" accept="image/*" multiple capture="environment" style="display:none" onchange="albumAddPhotos(this)">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="album-upload-btn" style="flex:1;margin-bottom:0;" onclick="document.getElementById('album-cam-inp').click()">
+        📷 直接拍照
+      </button>
+      <button class="album-upload-btn" style="flex:1;margin-bottom:0;" onclick="document.getElementById('album-file-inp').click()">
+        🖼 從相簿上傳
+      </button>
+    </div>
+    <!-- 拍照：有 capture，強制開相機 -->
+    <input type="file" id="album-cam-inp" accept="image/*" capture="environment" style="display:none" onchange="albumAddPhotos(this)">
+    <!-- 選取：無 capture，讓手機選擇相簿或相機 -->
+    <input type="file" id="album-file-inp" accept="image/*" multiple style="display:none" onchange="albumAddPhotos(this)">
     <div class="photo-grid" id="photo-grid"></div>
     <div id="album-empty" class="empty" style="display:none">還沒有相片，點上方按鈕上傳</div>
   </div>
