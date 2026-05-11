@@ -1,5 +1,9 @@
+
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 :root{
@@ -203,9 +207,22 @@
 </head><body>
 <div class="app">
 
+<!-- 載入中遮罩 -->
+<div id="loading-overlay" style="position:fixed;inset:0;background:rgba(255,255,255,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+  <div style="font-size:36px;">🌏</div>
+  <div style="font-size:15px;font-weight:500;color:var(--txt);">六塊肌山水相逢</div>
+  <div style="font-size:13px;color:var(--txt3);">連線雲端資料中…</div>
+  <div style="width:40px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;">
+    <div style="width:40%;height:100%;background:var(--blue-mid);border-radius:2px;animation:slide 1.2s infinite ease-in-out;"></div>
+  </div>
+</div>
+<style>
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+</style>
+
 <!-- ① 旅遊列表 -->
 <div class="page active" id="page-trips">
-  <div class="top-bar"><h1>六塊肌山水相逢</h1></div>
+  <div class="top-bar"><h1>六塊肌山水相逢</h1><span id="sync-indicator" style="font-size:11px;"></span></div>
   <div class="trip-list-wrap">
     <button class="add-trip-btn" onclick="nav('page-new-trip')">＋ 新增旅遊</button>
     <div id="trip-list"></div>
@@ -513,24 +530,124 @@ var CC={
   '醫療':{bg:'#FCEBEB',c:'#A32D2D',e:'🏥',hex:'#A32D2D'},
   '其他':{bg:'#F1EFE8',c:'#5F5E5A',e:'⋯',hex:'#5F5E5A'}
 };
-var trips=[
-  {id:1,name:'澳洲之旅 2025',emoji:'✈🦘',dest:'雪梨・大堡礁',dateFrom:'2025-07-10',dateTo:'2025-07-20',baseCur:'AUD',closed:false,
-   members:['小明','阿花','阿偉','小美','阿仁','小君'],
-   nextId:7,
-   expenses:[
-    {id:1,desc:'晚餐 Nobu Restaurant',cat:'餐飲',amt:360,cur:'AUD',payer:'小明',split:'all',splitTo:[],date:'7月15日'},
-    {id:2,desc:'機場快線巴士',cat:'交通',amt:84,cur:'AUD',payer:'阿花',split:'all',splitTo:[],date:'7月15日'},
-    {id:3,desc:'雪梨歌劇院導覽票',cat:'景點',amt:120,cur:'AUD',payer:'阿偉',split:'pick',splitTo:['小明','阿花','阿偉','小美'],date:'7月15日'},
-    {id:4,desc:'住宿 Airbnb 第4晚',cat:'住宿',amt:480,cur:'AUD',payer:'小美',split:'all',splitTo:[],date:'7月14日'},
-    {id:5,desc:'早午餐咖啡廳',cat:'餐飲',amt:156,cur:'AUD',payer:'阿仁',split:'all',splitTo:[],date:'7月14日'},
-    {id:6,desc:'雪梨水族館門票',cat:'景點',amt:240,cur:'AUD',payer:'小君',split:'all',splitTo:[],date:'7月13日'}
-   ]}
-];
-var nextTripId=2,curTripId=null;
+
+/* ══ Firebase 初始化 ══ */
+var FB_CONFIG={
+  apiKey:"AIzaSyAu0O5rgfTEh6d-mNH1yD_ZgP9v_I7bIeE",
+  authDomain:"trip-expense-b359f.firebaseapp.com",
+  databaseURL:"https://trip-expense-b359f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"trip-expense-b359f",
+  storageBucket:"trip-expense-b359f.firebasestorage.app",
+  messagingSenderId:"183858296568",
+  appId:"1:183858296568:web:1f1816f4e088353f332d0d"
+};
+firebase.initializeApp(FB_CONFIG);
+var db=firebase.database();
+var tripsRef=db.ref('trips');
+
+/* ══ Local state（由 Firebase 同步填入）══ */
+var trips=[];
+var nextTripId=1;
+var curTripId=null;
 var amtStr='',catSel='餐飲',payerSel='',splitMode='all',pickedM=[],expAmtCur='AUD';
 var expBack='page-home',personBack='page-settle';
 var selEmojiArr=[],newTripBaseCur='AUD';
 var expPhotoDataUrl=null;
+var _fbReady=false; // true after first Firebase load
+
+/* ══ 同步狀態提示 ══ */
+function showSyncing(){
+  var el=document.getElementById('sync-indicator');
+  if(el){el.textContent='⟳ 同步中…';el.style.color='var(--txt3)';}
+}
+function showSynced(){
+  var el=document.getElementById('sync-indicator');
+  if(el){el.textContent='✓ 已同步';el.style.color='var(--green-txt)';
+    setTimeout(function(){if(el)el.textContent='';},2000);}
+}
+function showSyncErr(){
+  var el=document.getElementById('sync-indicator');
+  if(el){el.textContent='⚠ 同步失敗';el.style.color='var(--red-txt)';}
+}
+
+/* ══ Firebase 寫入 ══ */
+function fbSaveTrips(){
+  showSyncing();
+  /* Convert arrays to Firebase-safe objects (no undefined, no circular refs) */
+  var data={};
+  trips.forEach(function(t){
+    var tc=JSON.parse(JSON.stringify(t));
+    /* Firebase doesn't allow arrays with holes — convert expenses/photos to object maps */
+    if(tc.expenses){
+      var em={};tc.expenses.forEach(function(e,i){em['e'+e.id]=e;});tc.expenses=em;
+    }
+    if(tc.photos){
+      var pm={};tc.photos.forEach(function(p,i){pm['p'+i]=p;});tc.photos=pm;
+    }
+    if(tc.transfers){
+      var trm={};tc.transfers.forEach(function(r,i){trm['t'+i]=r;});tc.transfers=trm;
+    }
+    if(tc.members){
+      var mm={};tc.members.forEach(function(m,i){mm['m'+i]=m;});tc.members=mm;
+    }
+    data['trip'+t.id]=tc;
+  });
+  data['_nextTripId']=nextTripId;
+  tripsRef.set(data).then(showSynced).catch(showSyncErr);
+}
+
+/* ══ Firebase 讀取並轉回陣列 ══ */
+function fbParse(raw){
+  if(!raw)return;
+  var parsed=[];
+  Object.keys(raw).forEach(function(k){
+    if(k==='_nextTripId'){nextTripId=raw[k];return;}
+    var t=raw[k];
+    /* Convert members map → array */
+    if(t.members&&!Array.isArray(t.members)){
+      var marr=[];Object.keys(t.members).sort().forEach(function(mk){marr.push(t.members[mk]);});t.members=marr;
+    }
+    /* Convert expenses map → array */
+    if(t.expenses&&!Array.isArray(t.expenses)){
+      var earr=[];Object.keys(t.expenses).forEach(function(ek){earr.push(t.expenses[ek]);});
+      earr.sort(function(a,b){return b.id-a.id;});t.expenses=earr;
+    } else if(!t.expenses){t.expenses=[];}
+    /* Convert photos map → array */
+    if(t.photos&&!Array.isArray(t.photos)){
+      var parr=[];Object.keys(t.photos).sort().forEach(function(pk){parr.push(t.photos[pk]);});t.photos=parr;
+    } else if(!t.photos){t.photos=[];}
+    /* Convert transfers map → array */
+    if(t.transfers&&!Array.isArray(t.transfers)){
+      var tarr=[];Object.keys(t.transfers).forEach(function(tk){tarr.push(t.transfers[tk]);});t.transfers=tarr;
+    } else if(!t.transfers){t.transfers=[];}
+    parsed.push(t);
+  });
+  parsed.sort(function(a,b){return a.id-b.id;});
+  trips=parsed;
+}
+
+/* ══ 即時監聽 Firebase（所有人更新後自動刷新）══ */
+tripsRef.on('value',function(snap){
+  fbParse(snap.val());
+  _fbReady=true;
+  /* Refresh current visible page */
+  var activePage=document.querySelector('.page.active');
+  var pid=activePage?activePage.id:'page-trips';
+  if(pid==='page-trips')renderTrips();
+  else if(pid==='page-home')renderHome();
+  else if(pid==='page-settle')renderSettle();
+  else if(pid==='page-members')renderMembers();
+  else if(pid==='page-analytics')renderAnalytics();
+  else if(pid==='page-album')renderAlbum();
+  /* Hide loading overlay */
+  var ov=document.getElementById('loading-overlay');
+  if(ov)ov.style.display='none';
+},function(err){
+  console.error('Firebase error:',err);
+  showSyncErr();
+  var ov=document.getElementById('loading-overlay');
+  if(ov){ov.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:32px;margin-bottom:12px;">⚠️</div><div style="font-size:15px;color:var(--txt);margin-bottom:8px;">無法連線到雲端</div><div style="font-size:13px;color:var(--txt3);">請確認網路連線後重新整理頁面</div></div>';ov.style.display='flex';}
+});
 
 /* ══ Helpers ══ */
 function trip(){return trips.find(function(t){return t.id===curTripId;});}
@@ -610,13 +727,13 @@ function archiveTrip(id,e){
   var t=trips.find(function(x){return x.id===id;});
   if(!t)return;
   if(!confirm('封存「'+t.name+'」後將無法新增花費，可隨時取消封存恢復。確定封存？'))return;
-  t.closed=true;renderTrips();
+  t.closed=true;fbSaveTrips();renderTrips();
   if(curTripId===id)renderHome();
 }
 function unarchiveTrip(id,e){
   e.stopPropagation();
   var t=trips.find(function(x){return x.id===id;});
-  if(t){t.closed=false;renderTrips();if(curTripId===id)renderHome();}
+  if(t){t.closed=false;fbSaveTrips();renderTrips();if(curTripId===id)renderHome();}
 }
 function deleteTrip(id,e){
   e.stopPropagation();
@@ -625,6 +742,7 @@ function deleteTrip(id,e){
   if(!confirm('確定要刪除「'+t.name+'」及所有花費記錄？此操作無法復原。'))return;
   trips=trips.filter(function(x){return x.id!==id;});
   if(curTripId===id)curTripId=null;
+  fbSaveTrips();
   renderTrips();
 }
 
@@ -776,7 +894,8 @@ function saveTrip(){
   var mStr=document.getElementById('nt-members').value.trim();
   var mList=mStr?mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean):['成員1'];
   var emojiStr=selEmojiArr.length?selEmojiArr.join(''):'✈';
-  trips.push({id:nextTripId++,name:name,emoji:emojiStr,dest:dest,dateFrom:df,dateTo:dt,baseCur:newTripBaseCur,closed:false,members:mList,nextId:1,expenses:[]});
+  trips.push({id:nextTripId++,name:name,emoji:emojiStr,dest:dest,dateFrom:df,dateTo:dt,baseCur:newTripBaseCur,closed:false,members:mList,nextId:1,expenses:[],photos:[],transfers:[]});
+  fbSaveTrips();
   nav('page-trips');
 }
 
@@ -965,7 +1084,7 @@ function openExpDet(id,from){
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('page-exp-det').classList.add('active');
 }
-function delExp(id){trip().expenses=trip().expenses.filter(function(e){return e.id!==id;});nav(expBack);}
+function delExp(id){trip().expenses=trip().expenses.filter(function(e){return e.id!==id;});fbSaveTrips();nav(expBack);}
 
 /* ══ Person Detail ══ */
 function openPersonDet(name,from){
@@ -1062,6 +1181,7 @@ function doTransfer(fromName,toName,origAmt){
     /* Remove any previous record for same pair before adding new one */
     t.transfers=t.transfers.filter(function(tr){return !(tr.from===fromName&&tr.to===toName);});
     t.transfers.push({from:fromName,to:toName,amt:finalAmt,date:new Date().toISOString().slice(0,10),done:true});
+    fbSaveTrips();
   }
   var btn=document.getElementById('txn-transfer-btn');
   if(btn){btn.textContent='✅ 已完成轉帳';btn.disabled=true;btn.style.opacity='0.6';btn.style.cursor='default';}
@@ -1193,8 +1313,8 @@ function renderMembers(){
       +'<button class="icon-btn" onclick="delMbr(\''+m+'\')" style="color:var(--txt3);font-size:16px">✕</button></div>';
   }).join('');
 }
-function addMbr(){var inp=document.getElementById('new-mbr');var name=inp.value.trim();if(!name||members().indexOf(name)>=0)return;trip().members.push(name);inp.value='';renderMembers();}
-function delMbr(m){if(members().length<=1){alert('至少需要一位成員');return;}trip().members=trip().members.filter(function(x){return x!==m;});renderMembers();}
+function addMbr(){var inp=document.getElementById('new-mbr');var name=inp.value.trim();if(!name||members().indexOf(name)>=0)return;trip().members.push(name);inp.value='';fbSaveTrips();renderMembers();}
+function delMbr(m){if(members().length<=1){alert('至少需要一位成員');return;}trip().members=trip().members.filter(function(x){return x!==m;});fbSaveTrips();renderMembers();}
 
 /* ══ Add Expense ══ */
 function initAdd(){
@@ -1271,7 +1391,9 @@ function saveExp(){
   var dtVal=document.getElementById('exp-date-to').value;
   var dateDisplay=dfVal?fmtDate(dfVal)+(dtVal&&dtVal!==dfVal?' – '+fmtDate(dtVal):''):'';
   if(!dateDisplay){var n=new Date();dateDisplay=(n.getMonth()+1)+'月'+n.getDate()+'日';}
-  trip().expenses.unshift({id:trip().nextId++,desc:desc,cat:catSel,amt:amt,cur:expAmtCur,payer:payerSel,split:splitMode,splitTo:grp,date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,photo:expPhotoDataUrl});
+  trip().nextId=(trip().nextId||1)+1;
+  trip().expenses.unshift({id:trip().nextId-1,desc:desc,cat:catSel,amt:amt,cur:expAmtCur,payer:payerSel,split:splitMode,splitTo:grp,date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,photo:expPhotoDataUrl});
+  fbSaveTrips();
   nav('page-home');
 }
 
@@ -1322,7 +1444,7 @@ function albumAddPhotos(inp){
     reader.onload=function(e){
       t.photos.push({src:e.target.result,date:dateStr,cap:''});
       loaded++;
-      if(loaded===files.length)renderAlbum();
+      if(loaded===files.length){fbSaveTrips();renderAlbum();}
     };
     reader.readAsDataURL(file);
   });
@@ -1331,7 +1453,7 @@ function albumAddPhotos(inp){
 function albumDelPhoto(i){
   var t=trip();if(!t||!t.photos)return;
   if(!confirm('確定刪除這張相片？'))return;
-  t.photos.splice(i,1);renderAlbum();
+  t.photos.splice(i,1);fbSaveTrips();renderAlbum();
 }
 function openLightbox(i){
   var t=trip();if(!t||!t.photos)return;
@@ -1357,6 +1479,6 @@ document.addEventListener('click',function(ev){
   if(dd&&inp&&!dd.contains(ev.target)&&ev.target!==inp){dd.style.display='none';}
 });
 
-renderTrips();
+/* Firebase listener above handles initial render — no renderTrips() needed here */
 </script>
 </body></html>
