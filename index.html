@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- Firebase SDK -->
@@ -202,6 +203,10 @@
 .dropdown-item:last-child{border-bottom:none;}
 .dropdown-item:hover{background:var(--bg2);}
 .dropdown-item:active{background:var(--bg3);}
+
+/* lock page */
+#page-lock{min-height:100vh;background:linear-gradient(160deg,#E6F1FB 0%,#fff 60%);}
+/* settings */
 </style>
 </head><body>
 <div class="app">
@@ -217,11 +222,15 @@
 </div>
 <style>
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+
+/* lock page */
+#page-lock{min-height:100vh;background:linear-gradient(160deg,#E6F1FB 0%,#fff 60%);}
+/* settings */
 </style>
 
 <!-- ① 旅遊列表 -->
 <div class="page active" id="page-trips">
-  <div class="top-bar"><h1>六塊肌山水相逢</h1><span id="sync-indicator" style="font-size:11px;"></span></div>
+  <div class="top-bar"><h1>六塊肌山水相逢</h1><span id="sync-indicator" style="font-size:11px;flex:1;text-align:right;padding-right:6px;"></span><button class="icon-btn" onclick="nav('page-global-stats')" title="全旅遊統計">📊</button><button class="icon-btn" onclick="nav('page-settings')" title="設定">⚙️</button></div>
   <div class="trip-list-wrap">
     <button class="add-trip-btn" onclick="nav('page-new-trip')">＋ 新增旅遊</button>
     <div id="trip-list"></div>
@@ -516,6 +525,61 @@
   <div class="lightbox-cap" id="lb-cap"></div>
 </div>
 
+
+<!-- 🔐 密碼頁 -->
+<div class="page active" id="page-lock">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;gap:20px;">
+    <div style="font-size:48px;">🏔</div>
+    <div style="text-align:center;">
+      <div style="font-size:20px;font-weight:600;color:var(--txt);margin-bottom:4px;">六塊肌山水相逢</div>
+      <div style="font-size:13px;color:var(--txt3);">旅遊記帳平台</div>
+    </div>
+    <div style="width:100%;max-width:280px;display:flex;flex-direction:column;gap:10px;">
+      <div style="font-size:13px;color:var(--txt2);text-align:center;">請輸入群組密碼</div>
+      <div style="position:relative;">
+        <input id="lock-inp" type="password" placeholder="輸入密碼…"
+          style="width:100%;background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:12px 44px 12px 16px;font-size:16px;color:var(--txt);outline:none;text-align:center;"
+          onkeydown="if(event.key==='Enter')doUnlock()">
+        <button onclick="toggleLockVis()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--txt3);" id="lock-eye">👁</button>
+      </div>
+      <div id="lock-err" style="display:none;font-size:12px;color:var(--red-txt);text-align:center;">密碼錯誤，請再試一次</div>
+      <button onclick="doUnlock()" style="background:var(--blue-mid);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;">進入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ⚙ 設定頁（密碼修改）-->
+<div class="page" id="page-settings">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
+    <h1>設定</h1>
+  </div>
+  <div style="padding:16px;">
+    <div style="background:var(--bg2);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:500;color:var(--txt);margin-bottom:12px;">🔐 修改群組密碼</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">目前密碼</div>
+      <input id="pw-old" type="password" placeholder="輸入目前密碼" class="txt-inp" style="margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">新密碼</div>
+      <input id="pw-new" type="password" placeholder="輸入新密碼" class="txt-inp" style="margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">確認新密碼</div>
+      <input id="pw-confirm" type="password" placeholder="再次輸入新密碼" class="txt-inp" style="margin-bottom:12px;">
+      <div id="pw-msg" style="display:none;font-size:12px;text-align:center;margin-bottom:10px;"></div>
+      <button onclick="changePassword()" style="width:100%;background:var(--blue-mid);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;">確認修改密碼</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt3);text-align:center;padding:8px;">密碼儲存在雲端，所有成員共用同一組密碼</div>
+  </div>
+</div>
+
+
+<!-- 🌍 全旅遊統計頁 -->
+<div class="page" id="page-global-stats">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
+    <h1>全旅遊統計</h1>
+  </div>
+  <div class="analytics-wrap" id="global-stats-body"></div>
+</div>
+
 </div><!-- .app -->
 <script>
 /* ══ Data ══ */
@@ -646,9 +710,14 @@ tripsRef.on('value',function(snap){
   else if(pid==='page-members')renderMembers();
   else if(pid==='page-analytics')renderAnalytics();
   else if(pid==='page-album')renderAlbum();
-  /* Hide loading overlay */
+  else if(pid==='page-global-stats')renderGlobalStats();
+  /* Hide loading and show lock if not unlocked */
   var ov=document.getElementById('loading-overlay');
   if(ov)ov.style.display='none';
+  if(!_unlocked){
+    document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+    document.getElementById('page-lock').classList.add('active');
+  }
 },function(err){
   console.error('Firebase error:',err);
   showSyncErr();
@@ -686,6 +755,142 @@ function rateLabel(cur){
   }
 }
 
+
+/* ══ 密碼管理 ══ */
+var pwRef=db.ref('config/password');
+var CURRENT_PW='123456'; // local cache, overwritten by Firebase
+var _unlocked=false;
+
+/* Load password from Firebase */
+pwRef.once('value',function(snap){
+  var v=snap.val();
+  if(v)CURRENT_PW=v;
+});
+
+function doUnlock(){
+  var inp=document.getElementById('lock-inp');
+  var err=document.getElementById('lock-err');
+  if(inp.value===CURRENT_PW){
+    _unlocked=true;
+    err.style.display='none';
+    inp.value='';
+    document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+    document.getElementById('page-trips').classList.add('active');
+    renderTrips();
+  } else {
+    err.style.display='block';
+    inp.value='';
+    inp.focus();
+  }
+}
+function toggleLockVis(){
+  var inp=document.getElementById('lock-inp');
+  var eye=document.getElementById('lock-eye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🙈';}
+  else{inp.type='password';eye.textContent='👁';}
+}
+function changePassword(){
+  var oldV=document.getElementById('pw-old').value;
+  var newV=document.getElementById('pw-new').value.trim();
+  var conf=document.getElementById('pw-confirm').value.trim();
+  var msg=document.getElementById('pw-msg');
+  function showMsg(txt,ok){msg.textContent=txt;msg.style.color=ok?'var(--green-txt)':'var(--red-txt)';msg.style.display='block';}
+  if(oldV!==CURRENT_PW){showMsg('目前密碼錯誤',false);return;}
+  if(!newV){showMsg('新密碼不能為空',false);return;}
+  if(newV!==conf){showMsg('兩次輸入的密碼不一致',false);return;}
+  if(newV.length<4){showMsg('密碼至少需要 4 個字元',false);return;}
+  pwRef.set(newV).then(function(){
+    CURRENT_PW=newV;
+    document.getElementById('pw-old').value='';
+    document.getElementById('pw-new').value='';
+    document.getElementById('pw-confirm').value='';
+    showMsg('✅ 密碼已更新成功！',true);
+  }).catch(function(){showMsg('儲存失敗，請檢查網路',false);});
+}
+
+/* ══ 全旅遊統計 ══ */
+function renderGlobalStats(){
+  var body=document.getElementById('global-stats-body');
+  if(!body)return;
+  if(!trips.length){body.innerHTML='<div class="empty">還沒有任何旅遊記錄</div>';return;}
+
+  /* Total across all trips converted to TWD */
+  var grandTWD=0,grandExp=0,grandTrips=trips.length;
+  var catMapTWD={};
+  var tripRows='';
+  var allDates=[];
+
+  trips.forEach(function(t){
+    var tripTWD=0;
+    t.expenses.forEach(function(e){
+      var twd=e.amt*(RATES[e.cur]||1);
+      tripTWD+=twd;grandTWD+=twd;grandExp++;
+      catMapTWD[e.cat]=(catMapTWD[e.cat]||0)+twd;
+    });
+    if(t.dateFrom)allDates.push(t.dateFrom);
+    var members=Array.isArray(t.members)?t.members:[];
+    tripRows+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--brd);">'
+      +'<div style="font-size:20px;flex-shrink:0;">'+t.emoji+'</div>'
+      +'<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+t.name+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);">'+members.length+' 人・'+t.expenses.length+' 筆</div></div>'
+      +'<div style="text-align:right;flex-shrink:0;"><div style="font-size:13px;font-weight:500;color:var(--txt);">TWD '+fmtN(tripTWD)+'</div>'
+      +(t.closed?'<div style="font-size:10px;color:var(--txt3);">已封存</div>':'<div style="font-size:10px;color:var(--green-txt);">進行中</div>')
+      +'</div></div>';
+  });
+  tripRows+='';
+
+  /* Donut chart for all trips categories (TWD) */
+  var cats=Object.keys(catMapTWD).sort(function(a,b){return catMapTWD[b]-catMapTWD[a];});
+  var PALETTE=['#3B6D11','#185FA5','#534AB7','#854F0B','#993556','#0F6E56','#A32D2D','#5F5E5A'];
+  var cx=70,cy=70,r=52,inner=32;
+  var paths='',legends='';
+  var angle=-Math.PI/2;
+  cats.forEach(function(cat,i){
+    var frac=catMapTWD[cat]/grandTWD;
+    var a2=angle+frac*2*Math.PI;
+    var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+    var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    var xi1=cx+inner*Math.cos(angle),yi1=cy+inner*Math.sin(angle);
+    var xi2=cx+inner*Math.cos(a2),yi2=cy+inner*Math.sin(a2);
+    var lg=frac>0.5?1:0;
+    var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+    paths+='<path d="M'+xi1+' '+yi1+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' L'+xi2+' '+yi2+' A'+inner+' '+inner+' 0 '+lg+' 0 '+xi1+' '+yi1+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+    legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div>'
+      +'<span class="legend-lbl">'+cat+'</span>'
+      +'<span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
+    angle=a2;
+  });
+  var donutSVG='<svg class="donut-svg" width="140" height="140" viewBox="0 0 140 140">'+paths
+    +'<text x="70" y="66" text-anchor="middle" font-size="11" fill="#666">總計</text>'
+    +'<text x="70" y="81" text-anchor="middle" font-size="12" font-weight="500" fill="#111">TWD</text>'
+    +'<text x="70" y="95" text-anchor="middle" font-size="11" font-weight="500" fill="#111">'+fmtN(grandTWD)+'</text>'
+    +'</svg>';
+
+  /* Category bars */
+  var catBars=cats.map(function(cat,i){
+    var v=catMapTWD[cat];
+    var pct=Math.round(v/grandTWD*100);
+    var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+    return '<div class="bar-row">'
+      +'<div class="bar-lbl" style="color:'+col+';font-size:11px;">'+cat+'</div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+      +'<div class="bar-val" style="font-size:12px;">TWD '+fmtN(v)+'</div>'
+      +'</div>';
+  }).join('');
+
+  body.innerHTML=
+    '<div class="chart-card">'
+    +'<div class="chart-title">總覽</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+    +'<div class="pstat"><div class="pstat-lbl">旅遊次數</div><div class="pstat-val">'+grandTrips+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">總花費筆數</div><div class="pstat-val">'+grandExp+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">台幣總花費</div><div class="pstat-val" style="font-size:14px;">'+fmtN(grandTWD)+'</div></div>'
+    +'</div></div>'
+    +'<div class="chart-card"><div class="chart-title">各旅遊花費（台幣）</div>'+tripRows+'</div>'
+    +'<div class="chart-card"><div class="chart-title">所有旅遊類別分布</div>'
+    +'<div class="donut-wrap">'+donutSVG+'<div class="legend">'+legends+'</div></div></div>'
+    +'<div class="chart-card"><div class="chart-title">類別金額排行（台幣）</div>'+catBars+'</div>';
+}
 /* ══ Navigation ══ */
 function nav(p){
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
@@ -698,6 +903,7 @@ function nav(p){
   if(p==='page-new-trip')initNewTrip();
   if(p==='page-analytics')renderAnalytics();
   if(p==='page-album')renderAlbum();
+  if(p==='page-global-stats')renderGlobalStats();
 }
 function openTrip(id){curTripId=id;nav('page-home');}
 
