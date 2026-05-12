@@ -7,13 +7,23 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 :root{
-  --bg:#fff;--bg2:#f5f5f5;--bg3:#ebebeb;
-  --txt:#111;--txt2:#666;--txt3:#999;
-  --brd:rgba(0,0,0,0.12);--brd2:rgba(0,0,0,0.22);
-  --blue-bg:#E6F1FB;--blue-txt:#0C447C;--blue-mid:#185FA5;
-  --green-bg:#EAF3DE;--green-txt:#27500A;
-  --red-bg:#FCEBEB;--red-txt:#791F1F;
-  --amber-bg:#FAEEDA;--amber-txt:#633806;
+  --bg:#FAF7F2;
+  --bg2:#F0EBE0;
+  --bg3:#E5DDD0;
+  --txt:#2C2218;
+  --txt2:#6B5740;
+  --txt3:#9C8870;
+  --brd:rgba(160,130,90,0.18);
+  --brd2:rgba(160,130,90,0.32);
+  --blue-bg:#EDE5D8;
+  --blue-txt:#3A2810;
+  --blue-mid:#8A6E48;
+  --green-bg:#E0EDD8;
+  --green-txt:#2A4A18;
+  --red-bg:#F5E4E0;
+  --red-txt:#8B2A1A;
+  --amber-bg:#F5EDD8;
+  --amber-txt:#6A4E10;
 }
 .app{max-width:390px;margin:0 auto;background:var(--bg);border:0.5px solid var(--brd);border-radius:20px;overflow:hidden;}
 .page{display:none;}.page.active{display:block;}
@@ -27,7 +37,7 @@
 .trip-card{background:var(--bg);border:0.5px solid var(--brd);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
 .trip-card-body{flex:1;min-width:0;cursor:pointer;}
 .trip-card.closed-trip{opacity:0.55;}
-.trip-card.active-trip{border:1.5px solid var(--blue-mid);}
+.trip-card.active-trip{border:1.5px solid #8A6E48;}
 .closed-badge{background:var(--bg3);color:var(--txt3);font-size:10px;padding:2px 7px;border-radius:20px;margin-left:6px;}
 .trip-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;cursor:pointer;}
 .trip-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
@@ -46,28 +56,28 @@
 .form-lbl{font-size:12px;color:var(--txt2);margin-bottom:5px;font-weight:500;display:block;margin-top:12px;}
 .form-lbl:first-child{margin-top:0;}
 .txt-inp{width:100%;background:var(--bg2);border:0.5px solid var(--brd);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--txt);outline:none;}
-.txt-inp:focus{border-color:#85B7EB;}
+.txt-inp:focus{border-color:#C8B090;}
 .emoji-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px;}
 .emoji-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:8px 4px 6px;font-size:22px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;}
-.emoji-btn.sel{background:var(--blue-bg);border-color:#85B7EB;box-shadow:0 0 0 1.5px #85B7EB;}
-.emoji-btn.sel::after{content:'✓';position:absolute;top:3px;right:5px;font-size:9px;font-weight:700;color:var(--blue-mid);line-height:1;}
+.emoji-btn.sel{background:#EDE0C8;border-color:#C8B090;box-shadow:0 0 0 1.5px #C8B090;}
+.emoji-btn.sel::after{content:'✓';position:absolute;top:3px;right:5px;font-size:9px;font-weight:700;color:#8A6E48;line-height:1;}
 .emoji-tip{font-size:10px;color:var(--txt3);font-family:system-ui,sans-serif;line-height:1;}
-.emoji-btn.sel .emoji-tip{color:var(--blue-mid);}
+.emoji-btn.sel .emoji-tip{color:#8A6E48;}
 .emoji-btn:hover .emoji-tip{color:var(--txt2);}
 .emoji-btn:hover{background:var(--bg3);border-color:var(--brd2);}
 .currency-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px;}
 .cur-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;cursor:pointer;}
-.cur-btn.sel{background:var(--blue-bg);border-color:#85B7EB;}
+.cur-btn.sel{background:#EDE0C8;border-color:#C8B090;}
 .cur-code{font-size:15px;font-weight:500;color:var(--txt);}
 .cur-name{font-size:11px;color:var(--txt3);}
-.cur-btn.sel .cur-code{color:var(--blue-txt);}
-.cur-btn.sel .cur-name{color:var(--blue-mid);}
+.cur-btn.sel .cur-code{color:#3A2810;}
+.cur-btn.sel .cur-name{color:#8A6E48;}
 /* home */
-.summary-bar{background:var(--blue-bg);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
+.summary-bar{background:#E8DCC8;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
 .sum-item{text-align:center;}
-.sum-val{font-size:17px;font-weight:500;color:var(--blue-txt);display:block;}
-.sum-lbl{font-size:11px;color:var(--blue-mid);}
-.sum-div{width:0.5px;background:#B5D4F4;align-self:stretch;}
+.sum-val{font-size:17px;font-weight:500;color:#3A2810;display:block;}
+.sum-lbl{font-size:11px;color:#8A6E48;}
+.sum-div{width:0.5px;background:#C8B090;align-self:stretch;}
 .sec-head{font-size:11px;font-weight:500;color:var(--txt3);padding:10px 16px 4px;letter-spacing:.04em;}
 .exp-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:0.5px solid var(--brd);cursor:pointer;}
 .exp-row:hover{background:var(--bg2);}
@@ -78,16 +88,16 @@
 .exp-right{text-align:right;flex-shrink:0;}
 .exp-amt{font-size:14px;font-weight:500;color:var(--txt);}
 .exp-who{font-size:11px;color:var(--txt3);}
-.fab{margin:12px 16px;background:var(--blue-mid);color:var(--blue-bg);border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;}
-.fab:hover{background:var(--blue-txt);}
+.fab{margin:12px 16px;background:#8A6E48;color:#FAF7F2;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;}
+.fab:hover{background:#6A5030;}
 .fab:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
 .nav-bar{display:flex;border-top:0.5px solid var(--brd);}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 8px;gap:3px;font-size:10px;color:var(--txt3);cursor:pointer;border:none;background:none;}
-.nav-item.active{color:var(--blue-mid);}
+.nav-item.active{color:#8A6E48;}
 /* add expense */
 .cur-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
 .cur-pill{background:var(--bg2);border:0.5px solid var(--brd);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--txt2);cursor:pointer;white-space:nowrap;}
-.cur-pill.sel{background:var(--blue-bg);border-color:#85B7EB;color:var(--blue-txt);font-weight:500;}
+.cur-pill.sel{background:#EDE0C8;border-color:#C8B090;color:#3A2810;font-weight:500;}
 .rate-box{background:var(--amber-bg);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--amber-txt);margin-bottom:8px;text-align:center;font-weight:500;}
 .amt-box{width:100%;background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:12px 14px;font-size:28px;font-weight:500;text-align:center;color:var(--txt);margin-bottom:4px;}
 .twd-rate{text-align:center;font-size:12px;color:var(--txt3);margin-bottom:10px;}
@@ -96,35 +106,35 @@
 .num-btn:hover{background:var(--bg);border-color:var(--brd2);}
 .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
 .cat-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--txt2);cursor:pointer;}
-.cat-btn.sel{background:var(--blue-bg);border-color:#85B7EB;color:var(--blue-txt);}
+.cat-btn.sel{background:#EDE0C8;border-color:#C8B090;color:#3A2810;}
 .mbr-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 .mbr-pill{background:var(--bg2);border:0.5px solid var(--brd);border-radius:20px;padding:5px 12px;font-size:13px;color:var(--txt2);cursor:pointer;white-space:nowrap;}
-.mbr-pill.sel{background:var(--blue-bg);border-color:#85B7EB;color:var(--blue-txt);}
+.mbr-pill.sel{background:#EDE0C8;border-color:#C8B090;color:#3A2810;}
 .tog-row{display:flex;border:0.5px solid var(--brd2);border-radius:8px;overflow:hidden;margin-bottom:10px;}
 .tog-btn{flex:1;padding:8px 4px;font-size:12px;border:none;background:transparent;color:var(--txt2);cursor:pointer;}
-.tog-btn.on{background:var(--blue-mid);color:var(--blue-bg);font-weight:500;}
+.tog-btn.on{background:#8A6E48;color:#FAF7F2;font-weight:500;}
 .sp-preview{background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
 .sp-lbl{font-size:12px;color:var(--txt2);margin-bottom:6px;}
 .sp-mbrs{display:flex;gap:10px;flex-wrap:wrap;}
 .sp-mbr{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);}
 .av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;}
-.save-btn{width:100%;background:var(--blue-mid);color:var(--blue-bg);border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;}
-.save-btn:hover{background:var(--blue-txt);}
+.save-btn{width:100%;background:#8A6E48;color:#FAF7F2;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;}
+.save-btn:hover{background:#6A5030;}
 /* settle */
 .settle-hdr{padding:12px 16px;border-bottom:0.5px solid var(--brd);}
-.bal-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.bal-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
 .bal-chip{display:flex;align-items:center;gap:5px;background:var(--bg2);border-radius:20px;padding:4px 8px 4px 5px;cursor:pointer;border:0.5px solid transparent;}
 .bal-chip:hover{border-color:var(--brd2);}
 .net-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;}
-.net-pos{background:var(--green-bg);color:var(--green-txt);}
-.net-neg{background:var(--red-bg);color:var(--red-txt);}
-.net-zero{background:var(--bg2);color:var(--txt2);}
+.net-pos{background:#D8EDD8;color:#2A4A18;}
+.net-neg{background:#F5DDD8;color:#8B2A1A;}
+.net-zero{background:#E5DDD0;color:#6B5740;}
 .srow{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:0.5px solid var(--brd);cursor:pointer;}
 .srow:hover{background:var(--bg2);}
 .srow-det{flex:1;min-width:0;}
 .srow-who{font-size:13px;color:var(--txt);}
 .srow-sub{font-size:11px;color:var(--txt3);}
-.arr-badge{background:var(--green-bg);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--green-txt);font-weight:500;white-space:nowrap;flex-shrink:0;}
+.arr-badge{background:#E0DCC8;border-radius:6px;padding:3px 8px;font-size:12px;color:#3A2810;font-weight:500;white-space:nowrap;flex-shrink:0;}
 .share-btn{margin:12px 16px;width:calc(100% - 32px);background:var(--bg2);border:0.5px solid var(--brd2);border-radius:10px;padding:12px;font-size:13px;color:var(--txt);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 /* members */
 .mbr-pg{padding:14px 16px;}
@@ -135,7 +145,7 @@
 .mbr-stats{font-size:12px;color:var(--txt3);}
 .add-row{display:flex;gap:8px;margin-top:14px;}
 .add-row input{flex:1;}
-.add-btn{background:var(--blue-mid);color:var(--blue-bg);border:none;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;}
+.add-btn{background:#8A6E48;color:#FAF7F2;border:none;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;}
 /* detail pages */
 .det-hero{padding:20px 16px 16px;border-bottom:0.5px solid var(--brd);display:flex;gap:14px;align-items:center;}
 .det-section{padding:12px 16px;border-bottom:0.5px solid var(--brd);}
@@ -144,7 +154,7 @@
 .det-val{font-size:13px;font-weight:500;color:var(--txt);}
 .split-pr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--brd);}
 .split-pr:last-child{border-bottom:none;}
-.payer-tag{background:var(--blue-bg);color:var(--blue-txt);font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;}
+.payer-tag{background:#EDE0C8;color:#3A2810;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;}
 .del-btn{margin:14px 16px;width:calc(100% - 32px);background:var(--bg);border:0.5px solid #E24B4A;color:#A32D2D;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .pstat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px 16px;border-bottom:0.5px solid var(--brd);}
 .pstat{background:var(--bg2);border-radius:8px;padding:12px;}
@@ -212,8 +222,8 @@
 <div class="app">
 
 <!-- 載入中遮罩 -->
-<div id="loading-overlay" style="position:fixed;inset:0;background:rgba(255,255,255,0.96);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
-  <div style="font-size:36px;">🌏</div>
+<div id="loading-overlay" style="position:fixed;inset:0;background:rgba(250,247,242,0.97);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+  <div style="font-size:36px;">🏔</div>
   <div style="font-size:15px;font-weight:500;color:var(--txt);">六塊肌山水相逢</div>
   <div style="font-size:13px;color:var(--txt3);">連線雲端資料中…</div>
   <div style="width:40px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;">
@@ -240,8 +250,8 @@
 <!-- ② 新增旅遊 -->
 <div class="page" id="page-new-trip">
   <div class="top-bar">
-    <button class="icon-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
-    <h1>新增旅遊</h1>
+    <button class="icon-btn" id="nt-back-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
+    <h1 id="nt-page-title">新增旅遊</h1>
   </div>
   <div class="form-wrap">
     <div class="form-lbl">旅遊名稱</div>
@@ -294,7 +304,7 @@
     </div>
     <div class="form-lbl">成員（用逗號分隔）</div>
     <input class="txt-inp" type="text" id="nt-members" placeholder="e.g. 小明, 阿花, 阿偉" style="margin-bottom:16px;">
-    <button class="save-btn" onclick="saveTrip()">建立旅遊</button>
+    <button class="save-btn" id="nt-save-btn" onclick="saveTrip()">建立旅遊</button>
   </div>
 </div>
 
@@ -302,7 +312,11 @@
 <div class="page" id="page-home">
   <div class="top-bar">
     <button class="icon-btn" onclick="nav('page-trips')" title="所有旅遊">⊞</button>
-    <div style="flex:1"><h1 id="trip-title">旅遊名稱</h1><div class="top-sub" id="trip-meta"></div></div>
+    <div style="flex:1;cursor:pointer;" onclick="openEditTrip()" title="點擊修改旅遊資訊">
+      <h1 id="trip-title">旅遊名稱</h1>
+      <div class="top-sub" id="trip-meta"></div>
+    </div>
+    <button class="icon-btn" onclick="openEditTrip()" title="修改旅遊資訊" style="font-size:16px;">✏️</button>
     <button class="icon-btn" onclick="nav('page-members')" aria-label="成員">👥</button>
   </div>
   <div class="summary-bar">
@@ -439,7 +453,7 @@
         <span class="exp-photo-badge">收據</span>
       </div>
     </div>
-    <button class="save-btn" onclick="saveExp()">儲存花費</button>
+    <button class="save-btn" id="add-save-btn" onclick="saveExp()">儲存花費</button>
   </div>
 </div>
 
@@ -447,7 +461,7 @@
 <div class="page" id="page-settle">
   <div class="top-bar">
     <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
-    <div style="flex:1"><h1>分攤結算</h1><div class="top-sub">點名字或轉帳看明細</div></div>
+    <div style="flex:1"><h1>分攤結算</h1><div style="font-size:12px;color:var(--blue-mid);font-weight:500;margin-top:2px;background:var(--blue-bg);display:inline-block;padding:2px 8px;border-radius:6px;margin-top:4px;">👆 點名字或轉帳筆看明細</div></div>
   </div>
   <div class="settle-hdr">
     <div style="font-size:12px;font-weight:500;color:var(--txt3);margin-bottom:6px">各人淨餘額</div>
@@ -528,22 +542,136 @@
 
 <!-- 🔐 密碼頁 -->
 <div class="page active" id="page-lock">
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;gap:20px;">
-    <div style="font-size:48px;">🏔</div>
-    <div style="text-align:center;">
-      <div style="font-size:20px;font-weight:600;color:var(--txt);margin-bottom:4px;">六塊肌山水相逢</div>
-      <div style="font-size:13px;color:var(--txt3);">旅遊記帳平台</div>
+  <div style="min-height:100vh;display:flex;flex-direction:column;background:#FAF7F2;">
+
+    <!-- 山水風景畫 -->
+    <div style="flex:1;position:relative;overflow:hidden;">
+      <svg width="100%" viewBox="0 0 390 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="display:block;width:100%;height:100%;">
+
+        <!-- 天空漸層 -->
+        <rect x="0" y="0" width="390" height="480" fill="#FAF7F2"/>
+        <!-- 晨霧天色 -->
+        <ellipse cx="195" cy="60" rx="260" ry="120" fill="#F0E8D0" opacity="0.6"/>
+        <ellipse cx="100" cy="80" rx="160" ry="80" fill="#E8D8B8" opacity="0.35"/>
+        <ellipse cx="310" cy="70" rx="140" ry="70" fill="#EEE0C0" opacity="0.3"/>
+
+        <!-- 太陽 / 晨光 -->
+        <circle cx="195" cy="108" r="36" fill="#E8C870" opacity="0.55"/>
+        <circle cx="195" cy="108" r="24" fill="#EAD080" opacity="0.7"/>
+        <circle cx="195" cy="108" r="14" fill="#F0DC98" opacity="0.9"/>
+
+        <!-- 光暈射線 -->
+        <g opacity="0.18" stroke="#D4A840" stroke-width="1">
+          <line x1="195" y1="108" x2="120" y2="30"/>
+          <line x1="195" y1="108" x2="60" y2="80"/>
+          <line x1="195" y1="108" x2="270" y2="30"/>
+          <line x1="195" y1="108" x2="330" y2="78"/>
+          <line x1="195" y1="108" x2="195" y2="20"/>
+          <line x1="195" y1="108" x2="148" y2="22"/>
+          <line x1="195" y1="108" x2="242" y2="22"/>
+        </g>
+
+        <!-- 遠山（最後面）淡霧色 -->
+        <path d="M-10 280 Q40 200 90 220 Q130 190 160 210 Q190 175 220 205 Q255 185 280 200 Q320 170 360 195 Q380 200 400 220 L400 320 L-10 320 Z" fill="#C8B898" opacity="0.35"/>
+
+        <!-- 中遠山（霧藍山脈）-->
+        <path d="M-10 310 Q30 240 70 258 Q100 228 135 250 Q165 220 195 242 Q230 210 265 238 Q300 218 335 240 Q365 228 400 248 L400 360 L-10 360 Z" fill="#A89878" opacity="0.45"/>
+
+        <!-- 主山（中景）溫暖赭石 -->
+        <path d="M-10 360 Q20 290 55 305 Q80 270 115 292 Q145 258 175 280 Q200 250 225 272 Q260 245 295 268 Q330 250 365 275 Q385 280 400 295 L400 400 L-10 400 Z" fill="#8A7050" opacity="0.7"/>
+
+        <!-- 主山高光 -->
+        <path d="M175 280 Q192 258 210 272 Q195 268 178 282 Z" fill="#A08860" opacity="0.5"/>
+        <path d="M80 270 Q95 255 112 265 Q96 263 82 273 Z" fill="#907858" opacity="0.4"/>
+        <path d="M270 245 Q282 232 298 242 Q283 240 271 248 Z" fill="#907858" opacity="0.4"/>
+
+        <!-- 山間雲霧帶 -->
+        <ellipse cx="80" cy="295" rx="90" ry="18" fill="#FAF7F2" opacity="0.55"/>
+        <ellipse cx="260" cy="275" rx="80" ry="14" fill="#FAF7F2" opacity="0.45"/>
+        <ellipse cx="340" cy="310" rx="70" ry="12" fill="#FAF7F2" opacity="0.4"/>
+
+        <!-- 中景樹林 -->
+        <!-- 左側松樹群 -->
+        <g fill="#5A4830" opacity="0.8">
+          <path d="M32 380 L42 340 L52 380 Z"/>
+          <path d="M38 375 L50 330 L62 375 Z"/>
+          <path d="M18 385 L27 350 L36 385 Z"/>
+        </g>
+        <!-- 右側松樹群 -->
+        <g fill="#5A4830" opacity="0.8">
+          <path d="M330 382 L340 345 L350 382 Z"/>
+          <path d="M345 378 L357 338 L369 378 Z"/>
+          <path d="M358 385 L366 352 L374 385 Z"/>
+        </g>
+
+        <!-- 水面（前景）倒影 -->
+        <rect x="0" y="398" width="390" height="82" fill="#C8A870" opacity="0.35"/>
+        <rect x="0" y="398" width="390" height="3" fill="#A88858" opacity="0.5"/>
+
+        <!-- 水波紋 -->
+        <g stroke="#D4B880" stroke-width="0.8" fill="none" opacity="0.5">
+          <path d="M30 415 Q80 410 130 415 Q180 420 230 415 Q280 410 340 415"/>
+          <path d="M10 428 Q60 423 110 428 Q160 433 210 428 Q270 422 350 428"/>
+          <path d="M50 442 Q100 437 150 442 Q200 447 260 442 Q310 437 380 442"/>
+          <path d="M20 456 Q80 451 140 456 Q200 461 260 456 Q320 451 390 456"/>
+        </g>
+
+        <!-- 水中山影倒影 -->
+        <path d="M60 398 Q80 420 100 445 Q115 440 130 445 Q150 420 175 398 Z" fill="#8A7050" opacity="0.15"/>
+        <path d="M210 398 Q235 425 255 448 Q275 440 295 398 Z" fill="#8A7050" opacity="0.15"/>
+
+        <!-- 前景岸石 -->
+        <ellipse cx="55" cy="402" rx="28" ry="8" fill="#705840" opacity="0.6"/>
+        <ellipse cx="325" cy="404" rx="24" ry="7" fill="#705840" opacity="0.55"/>
+        <ellipse cx="185" cy="400" rx="18" ry="5" fill="#705840" opacity="0.45"/>
+
+        <!-- 蘆葦（前景左）-->
+        <g stroke="#8A7050" stroke-width="1.5" opacity="0.7">
+          <line x1="22" y1="415" x2="20" y2="385"/>
+          <line x1="30" y1="418" x2="29" y2="382"/>
+          <line x1="38" y1="414" x2="37" y2="388"/>
+          <ellipse cx="20" cy="382" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="29" cy="379" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="37" cy="384" rx="2" ry="6" fill="#A08860" opacity="0.7"/>
+        </g>
+
+        <!-- 蘆葦（前景右）-->
+        <g stroke="#8A7050" stroke-width="1.5" opacity="0.7">
+          <line x1="355" y1="413" x2="354" y2="383"/>
+          <line x1="365" y1="416" x2="364" y2="386"/>
+          <line x1="375" y1="412" x2="374" y2="388"/>
+          <ellipse cx="354" cy="380" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="364" cy="383" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="374" cy="385" rx="2" ry="6" fill="#A08860" opacity="0.7"/>
+        </g>
+
+        <!-- 飛鳥（遠景）-->
+        <g stroke="#9A7A50" stroke-width="1.2" fill="none" opacity="0.55">
+          <path d="M130 150 Q136 145 142 150"/>
+          <path d="M155 138 Q161 133 167 138"/>
+          <path d="M240 145 Q246 140 252 145"/>
+          <path d="M268 155 Q273 150 278 155"/>
+        </g>
+
+      </svg>
     </div>
-    <div style="width:100%;max-width:280px;display:flex;flex-direction:column;gap:10px;">
-      <div style="font-size:13px;color:var(--txt2);text-align:center;">請輸入群組密碼</div>
-      <div style="position:relative;">
-        <input id="lock-inp" type="password" placeholder="輸入密碼…"
-          style="width:100%;background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:12px 44px 12px 16px;font-size:16px;color:var(--txt);outline:none;text-align:center;"
-          onkeydown="if(event.key==='Enter')doUnlock()">
-        <button onclick="toggleLockVis()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--txt3);" id="lock-eye">👁</button>
+
+    <!-- 登入卡片 -->
+    <div style="background:#FAF7F2;padding:24px 28px 36px;border-top:1px solid #C8B090;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:19px;font-weight:600;color:#3A2810;letter-spacing:0.5px;">六塊肌山水相逢</div>
+        <div style="font-size:12px;color:#9C8870;margin-top:3px;">旅遊記帳平台・請輸入群組密碼</div>
       </div>
-      <div id="lock-err" style="display:none;font-size:12px;color:var(--red-txt);text-align:center;">密碼錯誤，請再試一次</div>
-      <button onclick="doUnlock()" style="background:var(--blue-mid);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;">進入</button>
+      <div style="position:relative;margin-bottom:10px;">
+        <input id="lock-inp" type="password" placeholder="輸入密碼…"
+          style="width:100%;background:#F0EBE0;border:1px solid #C8B090;border-radius:10px;padding:12px 44px 12px 16px;font-size:16px;color:#2C2218;outline:none;text-align:center;box-sizing:border-box;"
+          onkeydown="if(event.key==='Enter')doUnlock()">
+        <button onclick="toggleLockVis()" id="lock-eye"
+          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#9A8060;">👁</button>
+      </div>
+      <div id="lock-err" style="display:none;font-size:12px;color:#9B3A2A;text-align:center;margin-bottom:8px;">密碼錯誤，請再試一次</div>
+      <button onclick="doUnlock()"
+        style="width:100%;background:#8A6E48;color:#FAF7F2;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">進入</button>
     </div>
   </div>
 </div>
@@ -623,7 +751,38 @@ var curTripId=null;
 var amtStr='',catSel='餐飲',payerSel='',splitMode='all',pickedM=[],expAmtCur='AUD';
 var expBack='page-home',personBack='page-settle';
 var selEmojiArr=[],newTripBaseCur='AUD';
+var editingTripId=null; // null=new, id=editing
+
+function openEditTrip(){
+  var t=trip();if(!t)return;
+  editingTripId=t.id;
+  /* Switch page-new-trip to edit mode */
+  document.getElementById('nt-page-title').textContent='修改旅遊資訊';
+  document.getElementById('nt-save-btn').textContent='儲存修改';
+  document.getElementById('nt-back-btn').onclick=function(){nav('page-home');};
+  /* Fill form with existing trip data */
+  document.getElementById('nt-name').value=t.name||'';
+  document.getElementById('nt-dest').value=t.dest||'';
+  document.getElementById('nt-date-from').value=t.dateFrom||'';
+  document.getElementById('nt-date-to').value=t.dateTo||'';
+  document.getElementById('nt-members').value=(t.members||[]).join('，');
+  newTripBaseCur=t.baseCur||'AUD';
+  /* Emoji */
+  selEmojiArr=t.emoji?Array.from(t.emoji):[];
+  /* Reset emoji grid to defaults and mark sel */
+  resetEmojiGrid();
+  /* Base currency buttons */
+  document.querySelectorAll('#base-cur-grid .cur-btn').forEach(function(b){b.classList.toggle('sel',b.dataset.cur===newTripBaseCur);});
+  document.getElementById('trip-dropdown').style.display='none';
+  document.getElementById('emoji-ai-hint').style.display='none';
+  updateEmojiPreview();
+  /* Navigate */
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-new-trip').classList.add('active');
+}
 var expPhotoDataUrl=null;
+var editingExpId=null; // null = new, number = editing existing
+var editAmtFresh=false; // true when editing: clear amount on first digit press
 var _fbReady=false; // true after first Firebase load
 
 /* ══ 同步狀態提示 ══ */
@@ -809,88 +968,295 @@ function changePassword(){
 }
 
 /* ══ 全旅遊統計 ══ */
+/* ══ 全旅遊統計 ══ */
+var gsChartType='donut';  // donut | bar | column | pie_full
+var gsFilterPerson='ALL'; // 'ALL' or person name
+
 function renderGlobalStats(){
   var body=document.getElementById('global-stats-body');
   if(!body)return;
   if(!trips.length){body.innerHTML='<div class="empty">還沒有任何旅遊記錄</div>';return;}
 
-  /* Total across all trips converted to TWD */
-  var grandTWD=0,grandExp=0,grandTrips=trips.length;
+  var PALETTE=['#8A6E48','#5A7E48','#48687E','#7E4858','#6E4888','#887840','#486878','#785040'];
+
+  /* ── Collect all unique person names ── */
+  var allPersons=[];
+  trips.forEach(function(t){
+    (t.members||[]).forEach(function(m){if(allPersons.indexOf(m)<0)allPersons.push(m);});
+  });
+
+  /* ── Filter expenses by person if selected ── */
+  function getFilteredExpenses(t){
+    if(gsFilterPerson==='ALL')return t.expenses||[];
+    var members=Array.isArray(t.members)?t.members:[];
+    if(members.indexOf(gsFilterPerson)<0)return [];
+    return (t.expenses||[]).filter(function(e){
+      var grp=e.split==='all'?members:(e.splitTo||members);
+      return grp.indexOf(gsFilterPerson)>=0;
+    });
+  }
+  function getPersonShare(e,members){
+    /* TWD amount this person bears */
+    if(gsFilterPerson==='ALL')return e.amt*(RATES[e.cur]||1);
+    var grp=e.split==='all'?members:(e.splitTo||members);
+    if(grp.indexOf(gsFilterPerson)<0)return 0;
+    return e.amt*(RATES[e.cur]||1)/grp.length;
+  }
+
+  /* ── Aggregate ── */
+  var grandTWD=0,grandExp=0;
   var catMapTWD={};
   var tripRows='';
-  var allDates=[];
 
   trips.forEach(function(t){
+    var members=Array.isArray(t.members)?t.members:[];
+    var fExp=getFilteredExpenses(t);
     var tripTWD=0;
-    t.expenses.forEach(function(e){
-      var twd=e.amt*(RATES[e.cur]||1);
+    fExp.forEach(function(e){
+      var twd=getPersonShare(e,members);
       tripTWD+=twd;grandTWD+=twd;grandExp++;
       catMapTWD[e.cat]=(catMapTWD[e.cat]||0)+twd;
     });
-    if(t.dateFrom)allDates.push(t.dateFrom);
-    var members=Array.isArray(t.members)?t.members:[];
+    if(gsFilterPerson!=='ALL'&&members.indexOf(gsFilterPerson)<0)return;
     tripRows+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--brd);">'
-      +'<div style="font-size:20px;flex-shrink:0;">'+t.emoji+'</div>'
-      +'<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+t.name+'</div>'
-      +'<div style="font-size:11px;color:var(--txt3);">'+members.length+' 人・'+t.expenses.length+' 筆</div></div>'
-      +'<div style="text-align:right;flex-shrink:0;"><div style="font-size:13px;font-weight:500;color:var(--txt);">TWD '+fmtN(tripTWD)+'</div>'
+      +'<div style="font-size:18px;flex-shrink:0;">'+t.emoji+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+t.name+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);">'+fExp.length+' 筆</div></div>'
+      +'<div style="text-align:right;flex-shrink:0;">'
+      +'<div style="font-size:13px;font-weight:500;color:var(--txt);">TWD '+fmtN(tripTWD)+'</div>'
       +(t.closed?'<div style="font-size:10px;color:var(--txt3);">已封存</div>':'<div style="font-size:10px;color:var(--green-txt);">進行中</div>')
       +'</div></div>';
   });
-  tripRows+='';
 
-  /* Donut chart for all trips categories (TWD) */
   var cats=Object.keys(catMapTWD).sort(function(a,b){return catMapTWD[b]-catMapTWD[a];});
-  var PALETTE=['#3B6D11','#185FA5','#534AB7','#854F0B','#993556','#0F6E56','#A32D2D','#5F5E5A'];
-  var cx=70,cy=70,r=52,inner=32;
-  var paths='',legends='';
-  var angle=-Math.PI/2;
-  cats.forEach(function(cat,i){
-    var frac=catMapTWD[cat]/grandTWD;
-    var a2=angle+frac*2*Math.PI;
-    var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
-    var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
-    var xi1=cx+inner*Math.cos(angle),yi1=cy+inner*Math.sin(angle);
-    var xi2=cx+inner*Math.cos(a2),yi2=cy+inner*Math.sin(a2);
-    var lg=frac>0.5?1:0;
-    var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
-    paths+='<path d="M'+xi1+' '+yi1+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' L'+xi2+' '+yi2+' A'+inner+' '+inner+' 0 '+lg+' 0 '+xi1+' '+yi1+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
-    legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div>'
-      +'<span class="legend-lbl">'+cat+'</span>'
-      +'<span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
-    angle=a2;
-  });
-  var donutSVG='<svg class="donut-svg" width="140" height="140" viewBox="0 0 140 140">'+paths
-    +'<text x="70" y="66" text-anchor="middle" font-size="11" fill="#666">總計</text>'
-    +'<text x="70" y="81" text-anchor="middle" font-size="12" font-weight="500" fill="#111">TWD</text>'
-    +'<text x="70" y="95" text-anchor="middle" font-size="11" font-weight="500" fill="#111">'+fmtN(grandTWD)+'</text>'
-    +'</svg>';
 
-  /* Category bars */
-  var catBars=cats.map(function(cat,i){
-    var v=catMapTWD[cat];
-    var pct=Math.round(v/grandTWD*100);
-    var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
-    return '<div class="bar-row">'
-      +'<div class="bar-lbl" style="color:'+col+';font-size:11px;">'+cat+'</div>'
-      +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
-      +'<div class="bar-val" style="font-size:12px;">TWD '+fmtN(v)+'</div>'
+  /* ── Person filter dropdown ── */
+  var filterHTML='<div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'
+    +'<label style="font-size:12px;color:var(--txt2);white-space:nowrap;">👤 成員篩選</label>'
+    +'<select id="gs-person-sel" onchange="gsSetPerson(this.value)" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--txt);outline:none;">'
+    +'<option value="ALL"'+(gsFilterPerson==='ALL'?' selected':'')+'>全部成員</option>';
+  allPersons.forEach(function(m){
+    filterHTML+='<option value="'+m+'"'+(gsFilterPerson===m?' selected':'')+'>'+m+'</option>';
+  });
+  filterHTML+='</select></div>';
+
+  /* ── Chart type dropdown ── */
+  var chartTypes=[
+    {id:'donut',label:'🍩 環形圖'},
+    {id:'bar',label:'📊 橫條圖'},
+    {id:'column',label:'📈 直條圖'},
+    {id:'pie_full',label:'🥧 圓形圖'},
+  ];
+  var switcherHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+    +'<label style="font-size:12px;color:var(--txt2);white-space:nowrap;">📊 圖表類型</label>'
+    +'<select id="gs-chart-sel" onchange="gsSetChart(this.value)" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--txt);outline:none;">';
+  chartTypes.forEach(function(ct){
+    switcherHTML+='<option value="'+ct.id+'"'+(gsChartType===ct.id?' selected':'')+'>'+ct.label+'</option>';
+  });
+  switcherHTML+='</select></div>';
+
+  /* ── Build selected chart ── */
+  var chartHTML='';
+  var legends='';
+
+  if(grandTWD>0){
+    if(gsChartType==='donut'){
+      /* SVG donut */
+      var cx=70,cy=70,r=54,inner=30;
+      var paths='';var angle=-Math.PI/2;
+      cats.forEach(function(cat,i){
+        var frac=catMapTWD[cat]/grandTWD;
+        var a2=angle+frac*2*Math.PI;
+        var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+        var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+        var xi1=cx+inner*Math.cos(angle),yi1=cy+inner*Math.sin(angle);
+        var xi2=cx+inner*Math.cos(a2),yi2=cy+inner*Math.sin(a2);
+        var lg=frac>0.5?1:0;
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        paths+='<path d="M'+xi1+' '+yi1+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' L'+xi2+' '+yi2+' A'+inner+' '+inner+' 0 '+lg+' 0 '+xi1+' '+yi1+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+        legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div><span class="legend-lbl">'+cat+'</span><span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
+        angle=a2;
+      });
+      var svg='<svg width="140" height="140" viewBox="0 0 140 140">'+paths
+        +'<text x="70" y="66" text-anchor="middle" font-size="10" fill="#888">合計</text>'
+        +'<text x="70" y="80" text-anchor="middle" font-size="11" font-weight="500" fill="#333">TWD</text>'
+        +'<text x="70" y="94" text-anchor="middle" font-size="10" font-weight="500" fill="#333">'+fmtN(grandTWD)+'</text>'
+        +'</svg>';
+      chartHTML='<div class="donut-wrap">'+svg+'<div class="legend">'+legends+'</div></div>';
+
+    } else if(gsChartType==='pie_full'){
+      /* SVG pie (no hole) */
+      var cx=80,cy=80,r=70;
+      var paths2='';var angle2=-Math.PI/2;
+      var lblLines='';
+      cats.forEach(function(cat,i){
+        var frac=catMapTWD[cat]/grandTWD;
+        var a2=angle2+frac*2*Math.PI;
+        var x1=cx+r*Math.cos(angle2),y1=cy+r*Math.sin(angle2);
+        var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+        var lg=frac>0.5?1:0;
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        if(frac<0.005){angle2=a2;return;}
+        paths2+='<path d="M'+cx+' '+cy+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+        /* Label at midpoint */
+        var midA=(angle2+a2)/2;
+        var lx=cx+(r*0.65)*Math.cos(midA),ly=cy+(r*0.65)*Math.sin(midA);
+        if(frac>0.06)lblLines+='<text x="'+lx+'" y="'+ly+'" text-anchor="middle" font-size="9" fill="#fff" font-weight="500">'+Math.round(frac*100)+'%</text>';
+        legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div><span class="legend-lbl">'+cat+'</span><span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
+        angle2=a2;
+      });
+      var svg2='<svg width="160" height="160" viewBox="0 0 160 160">'+paths2+lblLines+'</svg>';
+      chartHTML='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'+svg2+'<div class="legend" style="flex:1;">'+legends+'</div></div>';
+
+    } else if(gsChartType==='bar'){
+      /* Horizontal bar chart */
+      var maxV=catMapTWD[cats[0]]||1;
+      chartHTML=cats.map(function(cat,i){
+        var v=catMapTWD[cat];
+        var pct=Math.round(v/maxV*100);
+        var pctTotal=Math.round(v/grandTWD*100);
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        return '<div class="bar-row">'
+          +'<div class="bar-lbl" style="color:'+col+';font-size:11px;width:44px;">'+cat+'</div>'
+          +'<div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+          +'<div style="font-size:11px;color:var(--txt);text-align:right;min-width:80px;padding-left:8px;">TWD '+fmtN(v)+'<span style="color:var(--txt3);margin-left:4px;">('+pctTotal+'%)</span></div>'
+          +'</div>';
+      }).join('');
+
+    } else if(gsChartType==='column'){
+      /* Vertical bar chart (SVG) */
+      var W=320,H=160,pad=28,barW=Math.floor((W-pad*2)/Math.max(cats.length,1)*0.6);
+      var maxV2=catMapTWD[cats[0]]||1;
+      var colBars='',colLabels='',colVals='';
+      cats.forEach(function(cat,i){
+        var v=catMapTWD[cat];
+        var barH=Math.round((v/maxV2)*(H-30));
+        var x=pad+i*Math.floor((W-pad*2)/cats.length)+Math.floor((W-pad*2)/cats.length/2)-barW/2;
+        var y=H-barH-4;
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        colBars+='<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+barH+'" rx="3" fill="'+col+'"/>';
+        var label=cat.length>3?cat.slice(0,3):cat;
+        colLabels+='<text x="'+(x+barW/2)+'" y="'+(H+2)+'" text-anchor="middle" font-size="9" fill="#888">'+label+'</text>';
+        if(barH>18)colVals+='<text x="'+(x+barW/2)+'" y="'+(y-3)+'" text-anchor="middle" font-size="8" fill="'+col+'" font-weight="500">'+Math.round(v/grandTWD*100)+'%</text>';
+        legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div><span class="legend-lbl">'+cat+'</span><span class="legend-val">TWD '+fmtN(v)+'</span></div>';
+      });
+      chartHTML='<div style="overflow-x:auto;">'
+        +'<svg width="'+W+'" height="'+(H+18)+'" viewBox="0 0 '+W+' '+(H+18)+'">'
+        +'<line x1="'+pad+'" y1="0" x2="'+pad+'" y2="'+H+'" stroke="var(--brd)" stroke-width="0.5"/>'
+        +'<line x1="'+pad+'" y1="'+H+'" x2="'+(W-4)+'" y2="'+H+'" stroke="var(--brd)" stroke-width="0.5"/>'
+        +colBars+colLabels+colVals+'</svg></div>'
+        +'<div class="legend" style="margin-top:8px;">'+legends+'</div>';
+    }
+  } else {
+    chartHTML='<div class="empty" style="padding:20px;">此篩選條件下無花費資料</div>';
+  }
+
+  /* ── Personal paid vs owed breakdown (when person selected) ── */
+  var personDetailHTML='';
+  if(gsFilterPerson!=='ALL'){
+    var totalPaid=0,totalOwed=0,transferIn=0,transferOut=0;
+    trips.forEach(function(t){
+      var members=Array.isArray(t.members)?t.members:[];
+      if(members.indexOf(gsFilterPerson)<0)return;
+
+      /* Sum up expense-based paid and owed */
+      (t.expenses||[]).forEach(function(e){
+        var twdAmt=e.amt*(RATES[e.cur]||1);
+        /* Paid: count ALL expenses this person paid, regardless of split group */
+        if(e.payer===gsFilterPerson)totalPaid+=twdAmt;
+        /* Owed: only count if this person is in the split group */
+        var grp=e.split==='all'?members:(e.splitTo||members);
+        if(grp.indexOf(gsFilterPerson)>=0){
+          totalOwed+=twdAmt/grp.length;
+        }
+      });
+
+      /* Include confirmed transfers (converted to TWD via baseCur) */
+      var baseCurRate=RATES[t.baseCur]||1;
+      (t.transfers||[]).forEach(function(tr){
+        if(!tr.done)return;
+        var twdTr=tr.amt*baseCurRate;
+        if(tr.from===gsFilterPerson)transferOut+=twdTr;  /* this person paid someone */
+        if(tr.to===gsFilterPerson)transferIn+=twdTr;     /* this person received money */
+      });
+    });
+
+    /* Net = (expenses paid) - (expenses owed)
+       + transferOut (paying someone reduces your debt)
+       - transferIn  (receiving money reduces your receivable) */
+    var rawNet=totalPaid-totalOwed;
+    var adjNet=rawNet+transferOut-transferIn;
+
+    /* Labels */
+    var rawCls=rawNet>1?'pos':rawNet<-1?'neg':'';
+    var adjCls=adjNet>0.5?'pos':adjNet<-0.5?'neg':'';
+    var rawLbl=rawNet>1?'應收 TWD '+fmtN(rawNet):rawNet<-1?'應付 TWD '+fmtN(Math.abs(rawNet)):'均等';
+
+    /* Determine adjNet label with context */
+    var adjLbl,adjNote='';
+    if(Math.abs(adjNet)<=0.5){
+      adjLbl='✅ 已結清';
+    } else if(adjNet>0.5){
+      adjLbl='待收 TWD '+fmtN(adjNet);
+      if(rawNet>1&&transferIn>0)adjNote='（收到轉帳後仍有餘額待收）';
+    } else {
+      adjLbl='待付 TWD '+fmtN(Math.abs(adjNet));
+      if(rawNet>1&&transferIn>rawNet)adjNote='（轉帳超收 '+fmtN(transferIn-rawNet)+'，需退還）';
+      else if(rawNet<-1)adjNote='（含花費欠款）';
+    }
+
+    var hasTransfers=(transferIn+transferOut)>0;
+
+    personDetailHTML='<div class="chart-card">'
+      +'<div class="chart-title">'+gsFilterPerson+' 的個人統計</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;">'
+      +'<div class="pstat"><div class="pstat-lbl">實際付出（花費）</div><div class="pstat-val" style="font-size:14px;">TWD '+fmtN(totalPaid)+'</div></div>'
+      +'<div class="pstat"><div class="pstat-lbl">應分攤（花費）</div><div class="pstat-val" style="font-size:14px;">TWD '+fmtN(totalOwed)+'</div></div>'
+      +(hasTransfers
+        ?'<div class="pstat"><div class="pstat-lbl">已付出（轉帳）</div><div class="pstat-val" style="font-size:14px;color:var(--red-txt);">TWD '+fmtN(transferOut)+'</div></div>'
+        +'<div class="pstat"><div class="pstat-lbl">已收到（轉帳）</div><div class="pstat-val" style="font-size:14px;color:var(--green-txt);">TWD '+fmtN(transferIn)+'</div></div>'
+        :'')
+      +'</div>'
+      +'<div style="border-top:0.5px solid var(--brd);padding-top:10px;display:flex;justify-content:space-between;align-items:center;">'
+      +(hasTransfers
+        ?'<div style="font-size:12px;color:var(--txt3);">花費淨額：<span class="'+rawCls+'">'+rawLbl+'</span></div>'
+        +'<div style="text-align:right;">'
+        +'<div style="font-size:13px;font-weight:500;color:var(--txt);">結算後：<span style="font-weight:600;" class="'+adjCls+'">'+adjLbl+'</span></div>'
+        +(adjNote?'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+adjNote+'</div>':'')
+        +'</div>'
+        :'<div style="font-size:12px;color:var(--txt3);">尚無轉帳記錄</div>'
+        +'<div style="font-size:13px;font-weight:500;" class="'+rawCls+'">'+rawLbl+'</div>')
+      +'</div>'
       +'</div>';
-  }).join('');
+  }
 
   body.innerHTML=
+    /* 1. Filter & overview */
     '<div class="chart-card">'
-    +'<div class="chart-title">總覽</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
-    +'<div class="pstat"><div class="pstat-lbl">旅遊次數</div><div class="pstat-val">'+grandTrips+'</div></div>'
-    +'<div class="pstat"><div class="pstat-lbl">總花費筆數</div><div class="pstat-val">'+grandExp+'</div></div>'
-    +'<div class="pstat"><div class="pstat-lbl">台幣總花費</div><div class="pstat-val" style="font-size:14px;">'+fmtN(grandTWD)+'</div></div>'
+    +'<div class="chart-title">成員篩選</div>'
+    +filterHTML
+    +'<div style="margin-top:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+    +'<div class="pstat"><div class="pstat-lbl">旅遊次數</div><div class="pstat-val">'+trips.length+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">花費筆數</div><div class="pstat-val">'+grandExp+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">台幣合計</div><div class="pstat-val" style="font-size:14px;">'+fmtN(grandTWD)+'</div></div>'
     +'</div></div>'
-    +'<div class="chart-card"><div class="chart-title">各旅遊花費（台幣）</div>'+tripRows+'</div>'
-    +'<div class="chart-card"><div class="chart-title">所有旅遊類別分布</div>'
-    +'<div class="donut-wrap">'+donutSVG+'<div class="legend">'+legends+'</div></div></div>'
-    +'<div class="chart-card"><div class="chart-title">類別金額排行（台幣）</div>'+catBars+'</div>';
+    /* 2. Personal detail (if person selected) */
+    +personDetailHTML
+    /* 3. Per-trip breakdown */
+    +(tripRows?'<div class="chart-card"><div class="chart-title">各旅遊花費（台幣）</div>'+tripRows+'</div>':'')
+    /* 4. Category chart with type switcher */
+    +'<div class="chart-card">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+    +'<div class="chart-title" style="margin:0;">類別分布</div>'
+    +'</div>'
+    +switcherHTML
+    +chartHTML
+    +'</div>';
 }
+
+function gsSetPerson(name){gsFilterPerson=name;renderGlobalStats();}
+function gsSetChart(type){gsChartType=type;renderGlobalStats();}
 /* ══ Navigation ══ */
 function nav(p){
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
@@ -961,6 +1327,10 @@ function deleteTrip(id,e){
 
 /* ══ New Trip ══ */
 function initNewTrip(){
+  editingTripId=null;
+  document.getElementById('nt-page-title').textContent='新增旅遊';
+  document.getElementById('nt-save-btn').textContent='建立旅遊';
+  document.getElementById('nt-back-btn').onclick=function(){nav('page-trips');};
   selEmojiArr=[];newTripBaseCur='AUD';
   document.getElementById('nt-name').value='';
   document.getElementById('nt-dest').value='';
@@ -1105,11 +1475,59 @@ function saveTrip(){
   var df=document.getElementById('nt-date-from').value;
   var dt=document.getElementById('nt-date-to').value;
   var mStr=document.getElementById('nt-members').value.trim();
-  var mList=mStr?mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean):['成員1'];
   var emojiStr=selEmojiArr.length?selEmojiArr.join(''):'✈';
-  trips.push({id:nextTripId++,name:name,emoji:emojiStr,dest:dest,dateFrom:df,dateTo:dt,baseCur:newTripBaseCur,closed:false,members:mList,nextId:1,expenses:[],photos:[],transfers:[]});
-  fbSaveTrips();
-  nav('page-trips');
+
+  if(editingTripId!==null){
+    /* Edit mode: update existing trip */
+    var t=trips.find(function(x){return x.id===editingTripId;});
+    if(t){
+      t.name=name;t.dest=dest;t.dateFrom=df;t.dateTo=dt;t.emoji=emojiStr;
+      t.baseCur=newTripBaseCur;
+      /* Update members only if field was changed */
+      if(mStr){
+        var newMembers=mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean);
+        if(newMembers.length){
+          /* ── 防呆：找出被刪除但有記錄的成員 ── */
+          var oldMembers=t.members||[];
+          var removed=oldMembers.filter(function(m){return newMembers.indexOf(m)<0;});
+          var warnings=[];
+          removed.forEach(function(m){
+            var payExp=(t.expenses||[]).filter(function(e){return e.payer===m;});
+            var splitExp=(t.expenses||[]).filter(function(e){
+              var grp=e.split==='all'?oldMembers:(e.splitTo||oldMembers);
+              return grp.indexOf(m)>=0;
+            });
+            var trFrom=(t.transfers||[]).filter(function(tr){return tr.from===m;});
+            var trTo=(t.transfers||[]).filter(function(tr){return tr.to===m;});
+            var reasons=[];
+            if(payExp.length)reasons.push('付款人（'+payExp.length+' 筆花費）');
+            if(splitExp.length)reasons.push('分攤成員（'+splitExp.length+' 筆花費）');
+            if(trFrom.length)reasons.push('已付出轉帳（'+trFrom.length+' 筆）');
+            if(trTo.length)reasons.push('已收到轉帳（'+trTo.length+' 筆）');
+            if(reasons.length){
+              warnings.push('・'+m+'：'+reasons.join('、'));
+            }
+          });
+          if(warnings.length){
+            var msg='以下成員有花費或轉帳記錄，刪除後將影響分攤計算：\n\n'
+              +warnings.join('\n')
+              +'\n\n確定要移除這些成員嗎？\n（花費和轉帳記錄不會被刪除，但分攤計算可能不正確）';
+            if(!confirm(msg))return;
+          }
+          t.members=newMembers;
+        }
+      }
+    }
+    fbSaveTrips();
+    editingTripId=null;
+    nav('page-home');
+  } else {
+    /* New trip */
+    var mList=mStr?mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean):['成員1'];
+    trips.push({id:nextTripId++,name:name,emoji:emojiStr,dest:dest,dateFrom:df,dateTo:dt,baseCur:newTripBaseCur,closed:false,members:mList,nextId:1,expenses:[],photos:[],transfers:[]});
+    fbSaveTrips();
+    nav('page-trips');
+  }
 }
 
 /* ══ Home ══ */
@@ -1196,16 +1614,17 @@ function renderAnalytics(){
   members().forEach(function(m){mbrSpend[m]=0;});
   expenses().forEach(function(e){mbrSpend[e.payer]=(mbrSpend[e.payer]||0)+toBase(e.amt,e.cur);});
   var maxSpend=Math.max.apply(null,members().map(function(m){return mbrSpend[m]||0;}));
-  var mbrBars=members().map(function(m,i){
+  var mbrBars=members().filter(function(m){return (mbrSpend[m]||0)>0;}).map(function(m,i){
     var v=mbrSpend[m]||0;
     var pct=maxSpend>0?Math.round(v/maxSpend*100):0;
-    var a=AV[i%AV.length];
+    var idx=members().indexOf(m);
+    var a=AV[idx%AV.length];
     return '<div class="bar-row">'
       +'<div class="bar-lbl" style="color:'+a.c+'">'+m+'</div>'
       +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+a.c+'"></div></div>'
       +'<div class="bar-val">'+baseCur()+' '+fmtN(v)+'</div>'
       +'</div>';
-  }).join('');
+  }).join('') || '<div class="empty" style="padding:14px;">無付款記錄</div>';
 
   /* 3. Category amount bars */
   var catBars=cats.map(function(cat,i){
@@ -1268,14 +1687,39 @@ function openExpDet(id,from){
       +'<div style="text-align:right"><div style="font-size:13px;font-weight:500;color:var(--txt)">'+fmtBase(share)+'</div>'
       +'<div style="font-size:11px;color:var(--txt3)">≈ TWD '+fmtN(baseToTWD(share))+'</div></div></div>';
   }).join('');
+  var adjBal=computeBalAfterTransfers(); // global bal after all transfers
   var netRows=grp.map(function(m){
     var a=avOf(m);var isP=m===e.payer;
-    var net=isP?baseAmt-share:-share;
-    var cls=net>0.01?'pos':net<-0.01?'neg':'';
-    var lbl=net>0.01?'待收 '+fmtBase(net):net<-0.01?'待付 '+fmtBase(Math.abs(net)):'無需轉帳';
+    var expNet=isP?baseAmt-share:-share; // this expense's net for this person
+    var globalAdj=adjBal[m]||0;          // their overall balance after transfers
+
+    var lbl,cls,note='';
+    if(Math.abs(expNet)<0.01){
+      lbl='無需轉帳';cls='';
+    } else if(expNet>0.01){
+      // This person is owed money from this expense
+      if(globalAdj>0.01){
+        lbl='待收 '+fmtBase(expNet);cls='pos';
+      } else if(globalAdj<-0.01){
+        lbl='已收（整體已超收）';cls='pos';note='整體淨：待付 '+fmtBase(Math.abs(globalAdj));
+      } else {
+        lbl='已收（整體已結清）';cls='pos';note='整體淨：±0';
+      }
+    } else {
+      // This person owes money from this expense
+      if(globalAdj<-0.01){
+        lbl='待付 '+fmtBase(Math.abs(expNet));cls='neg';
+      } else if(globalAdj>0.01){
+        lbl='已付（整體仍有待收）';cls='neg';note='整體淨：待收 '+fmtBase(globalAdj);
+      } else {
+        lbl='已付（整體已結清）';cls='neg';note='整體淨：±0';
+      }
+    }
     return '<div class="split-pr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div>'
       +'<div style="flex:1;font-size:13px;color:var(--txt)">'+m+'</div>'
-      +'<div style="font-size:13px;font-weight:500" class="'+cls+'">'+lbl+'</div></div>';
+      +'<div style="text-align:right;"><div style="font-size:13px;font-weight:500" class="'+cls+'">'+lbl+'</div>'
+      +(note?'<div style="font-size:10px;color:var(--txt3);">'+note+'</div>':'')
+      +'</div></div>';
   }).join('');
   var origAmt=sameCur?''
     :'<div class="det-row"><div class="det-lbl">原始金額</div><div class="det-val">'+e.cur+' '+fmtN(e.amt)+'</div></div>'
@@ -1292,7 +1736,12 @@ function openExpDet(id,from){
     +'<div class="det-row"><div class="det-lbl">分攤</div><div class="det-val">'+(e.split==='all'?'全體（'+members().length+'人）':'指定（'+grp.length+'人）')+'</div></div>'
     +'<div class="det-section"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px">各人分攤金額（'+baseCur()+'）</div>'+splitRows+'</div>'
     +'<div class="det-section"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px">各人淨帳狀態</div>'+netRows+'</div>'
-    +(trip()&&trip().closed?'<div style="padding:12px 16px;font-size:13px;color:var(--txt3);text-align:center">📦 旅遊已封存，如需刪除請先取消封存</div>':'<button class="del-btn" onclick="delExp('+e.id+')">🗑 刪除這筆花費</button>')
+    +(trip()&&trip().closed
+      ?'<div style="padding:12px 16px;font-size:13px;color:var(--txt3);text-align:center">📦 旅遊已封存，如需編輯請先取消封存</div>'
+      :'<div style="display:flex;gap:8px;margin:14px 16px;">'
+        +'<button onclick="openEditExp('+e.id+')" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);color:var(--txt);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">✏️ 修改</button>'
+        +'<button class="del-btn" onclick="delExp('+e.id+')" style="flex:1;margin:0;">🗑 刪除</button>'
+        +'</div>')
     +(e.photo?'<div style="padding:12px 16px;"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:6px">收據 / 相片</div><img class="receipt-img" src="'+e.photo+'" alt="收據" onclick="openLightboxDirect(\''+e.id+'\')"></div>':'');
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('page-exp-det').classList.add('active');
@@ -1336,7 +1785,10 @@ function openPersonDet(name,from){
 /* ══ Txn Detail ══ */
 function openTxnDet(fromName,toName,origAmt){
   var fa=avOf(fromName),ta=avOf(toName);
-  var rel=expenses().filter(function(e){var grp=e.split==='all'?members():e.splitTo;return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);});
+  var rel=expenses().filter(function(e){
+    var grp=e.split==='all'?members():e.splitTo;
+    return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);
+  });
   var rows=rel.length?rel.map(function(e){
     var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);var share=grp.length?b/grp.length:0;
     return '<div class="exp-row" onclick="openExpDet('+e.id+',\'page-txn-det\')">'
@@ -1345,29 +1797,97 @@ function openTxnDet(fromName,toName,origAmt){
       +'<div class="exp-right"><div class="exp-amt">'+fmtBaseSh(b)+'</div><div class="chev">›</div></div></div>';
   }).join(''):'<div class="empty">無直接相關花費</div>';
 
+  renderTxnDet(fromName,toName,origAmt,fa,ta,rows);
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-txn-det').classList.add('active');
+}
+
+function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
+  fa=fa||avOf(fromName);ta=ta||avOf(toName);
+
+  /* Transfer history for this pair */
+  var t=trip();
+  var history=(t&&t.transfers||[]).filter(function(tr){return tr.from===fromName&&tr.to===toName&&tr.done;});
+  var totalTransferred=history.reduce(function(s,tr){return s+tr.amt;},0);
+  var remaining=Math.max(0,origAmt-totalTransferred);
+
+  /* History rows */
+  var historyHTML='';
+  if(history.length){
+    historyHTML='<div style="padding:12px 16px;border-bottom:0.5px solid var(--brd);">'
+      +'<div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px;">轉帳紀錄（共 '+history.length+' 筆）</div>';
+    history.forEach(function(tr,i){
+      historyHTML+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--brd);">'
+        +'<div style="font-size:18px;">💸</div>'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:13px;font-weight:500;color:var(--txt);">'+baseCur()+' '+fmtN(tr.amt)+'</div>'
+        +'<div style="font-size:11px;color:var(--txt3);">'+tr.date+'  ≈ TWD '+fmtN(baseToTWD(tr.amt))+'</div>'
+        +'</div>'
+        +'<span style="font-size:11px;background:var(--green-bg);color:var(--green-txt);padding:2px 8px;border-radius:10px;">✅ 已轉</span>'
+        +'<button onclick="deleteTxnRecord(\''+fromName+'\',\''+toName+'\','+i+','+origAmt+')" '
+        +'style="background:none;border:0.5px solid var(--red-txt);color:var(--red-txt);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">刪除</button>'
+        +'</div>';
+    });
+    historyHTML+='<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;">'
+      +'<div style="font-size:12px;color:var(--txt2);">已轉合計</div>'
+      +'<div style="font-size:14px;font-weight:500;color:var(--green-txt);">'+baseCur()+' '+fmtN(totalTransferred)+'</div>'
+      +'</div>';
+    if(remaining>0.5){
+      historyHTML+='<div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">'
+        +'<div style="font-size:12px;color:var(--txt2);">尚待轉帳</div>'
+        +'<div style="font-size:14px;font-weight:500;color:var(--red-txt);">'+baseCur()+' '+fmtN(remaining)+'</div>'
+        +'</div>';
+    } else {
+      historyHTML+='<div style="text-align:center;padding-top:6px;font-size:13px;color:var(--green-txt);font-weight:500;">🎉 已全數結清</div>';
+    }
+    historyHTML+='</div>';
+  }
+
+  /* New transfer input */
+  var suggestAmt=remaining>0.5?remaining:origAmt;
+  var newTransferHTML='<div style="width:100%;background:var(--bg2);border-radius:12px;padding:14px 16px;">'
+    +'<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:500;">新增轉帳金額（'+baseCur()+'）</div>'
+    +'<input id="txn-amt-inp" type="number" step="0.01" min="0" value="'+suggestAmt.toFixed(2)+'" '
+    +'style="width:100%;background:var(--bg);border:0.5px solid var(--brd2);border-radius:8px;padding:10px 12px;font-size:20px;font-weight:500;color:var(--txt);outline:none;text-align:center;box-sizing:border-box;" '
+    +'oninput="updTxnAmt('+origAmt+')">'
+    +'<div id="txn-twd-lbl" style="font-size:12px;color:var(--txt3);margin-top:5px;text-align:center;">≈ TWD '+fmtN(baseToTWD(suggestAmt))+'</div>'
+    +'<div id="txn-diff-lbl" style="font-size:11px;color:var(--txt3);margin-top:2px;text-align:center;height:16px;"></div>'
+    +'</div>'
+    +'<div style="padding:10px 16px 0;">'
+    +'<button id="txn-transfer-btn" onclick="doTransfer(\''+fromName+'\',\''+toName+'\','+origAmt+')" '
+    +'style="width:100%;background:var(--green-txt);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">💸 新增這筆轉帳</button>'
+    +'</div>';
+
+  if(!rows){
+    var rel=expenses().filter(function(e){
+      var grp=e.split==='all'?members():e.splitTo;
+      return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);
+    });
+    rows=rel.length?rel.map(function(e){
+      var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);var share=grp.length?b/grp.length:0;
+      return '<div class="exp-row" onclick="openExpDet('+e.id+',\'page-txn-det\')">'
+        +'<div class="cat-icon" style="background:'+c.bg+';font-size:18px">'+c.e+'</div>'
+        +'<div class="exp-main"><div class="exp-name">'+e.desc+'</div><div class="exp-meta">'+e.date+'・'+e.payer+'付・每人 '+fmtBase(share)+'</div></div>'
+        +'<div class="exp-right"><div class="exp-amt">'+fmtBaseSh(b)+'</div><div class="chev">›</div></div></div>';
+    }).join(''):'<div class="empty">無直接相關花費</div>';
+  }
+
   document.getElementById('txn-det-body').innerHTML=
-    '<div class="det-hero" style="flex-direction:column;align-items:center;gap:14px;padding:24px 16px;">'
+    '<div class="det-hero" style="flex-direction:column;align-items:center;gap:14px;padding:20px 16px 16px;">'
     +'<div style="display:flex;align-items:center;gap:16px;">'
     +'<div style="text-align:center;"><div class="av" style="background:'+fa.bg+';color:'+fa.c+';width:48px;height:48px;font-size:18px;margin:0 auto 5px;">'+fromName[0]+'</div><div style="font-size:13px;color:var(--txt2);">'+fromName+'</div></div>'
     +'<div style="text-align:center;font-size:22px;color:var(--txt3);">→</div>'
     +'<div style="text-align:center;"><div class="av" style="background:'+ta.bg+';color:'+ta.c+';width:48px;height:48px;font-size:18px;margin:0 auto 5px;">'+toName[0]+'</div><div style="font-size:13px;color:var(--txt2);">'+toName+'</div></div>'
     +'</div>'
-    +'<div style="width:100%;background:var(--bg2);border-radius:12px;padding:14px 16px;">'
-    +'<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:500;">轉帳金額（'+baseCur()+'）</div>'
-    +'<div style="display:flex;align-items:center;gap:10px;">'
-    +'<input id="txn-amt-inp" type="number" step="0.01" min="0" value="'+origAmt.toFixed(2)+'" style="flex:1;background:var(--bg);border:0.5px solid var(--brd2);border-radius:8px;padding:10px 12px;font-size:20px;font-weight:500;color:var(--txt);outline:none;text-align:center;" oninput="updTxnAmt('+origAmt+')">'
-    +'</div>'
-    +'<div id="txn-twd-lbl" style="font-size:12px;color:var(--txt3);margin-top:5px;text-align:center;">≈ TWD '+fmtN(baseToTWD(origAmt))+'</div>'
-    +'<div id="txn-diff-lbl" style="font-size:11px;color:var(--txt3);margin-top:2px;text-align:center;height:16px;"></div>'
-    +'</div>'
-    +'<div style="padding:14px 16px 0;">'
-    +'<button id="txn-transfer-btn" onclick="doTransfer(\''+fromName+'\',\''+toName+'\','+origAmt+')" style="width:100%;background:var(--green-txt);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">✅ 確認轉帳</button>'
+    +'<div style="text-align:center;">'
+    +'<div style="font-size:12px;color:var(--txt3);">建議轉帳金額</div>'
+    +'<div style="font-size:22px;font-weight:500;color:var(--txt);">'+fmtBase(origAmt)+'</div>'
+    +'<div style="font-size:12px;color:var(--txt3);">≈ TWD '+fmtN(baseToTWD(origAmt))+'</div>'
     +'</div>'
     +'</div>'
+    +historyHTML
+    +newTransferHTML
     +'<div class="sec-head">相關花費（'+rel.length+' 筆，點擊看明細）</div>'+rows;
-
-  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
-  document.getElementById('page-txn-det').classList.add('active');
 }
 
 function updTxnAmt(origAmt){
@@ -1387,19 +1907,39 @@ function updTxnAmt(origAmt){
 function doTransfer(fromName,toName,origAmt){
   var inp=document.getElementById('txn-amt-inp');
   var finalAmt=parseFloat(inp?inp.value:origAmt)||origAmt;
-  var msg=fromName+' 轉給 '+toName+'\n金額：'+baseCur()+' '+fmtN(finalAmt)+'（≈ TWD '+fmtN(baseToTWD(finalAmt))+'）\n\n確認完成轉帳？';
+  if(finalAmt<=0){alert('請輸入大於 0 的金額');return;}
+  var msg=fromName+' 轉給 '+toName+'\n金額：'+baseCur()+' '+fmtN(finalAmt)+'（≈ TWD '+fmtN(baseToTWD(finalAmt))+'）\n\n確認新增這筆轉帳？';
   if(!confirm(msg))return;
   var t=trip();if(t){
     if(!t.transfers)t.transfers=[];
-    /* Remove any previous record for same pair before adding new one */
-    t.transfers=t.transfers.filter(function(tr){return !(tr.from===fromName&&tr.to===toName);});
+    /* Append (not replace) — support multiple partial transfers */
     t.transfers.push({from:fromName,to:toName,amt:finalAmt,date:new Date().toISOString().slice(0,10),done:true});
     fbSaveTrips();
   }
-  var btn=document.getElementById('txn-transfer-btn');
-  if(btn){btn.textContent='✅ 已完成轉帳';btn.disabled=true;btn.style.opacity='0.6';btn.style.cursor='default';}
-  /* Re-render settle page in background so bal chips update when user goes back */
+  /* Re-render this page to show updated history */
+  renderTxnDet(fromName,toName,origAmt,null,null,null);
   setTimeout(function(){renderSettle&&renderSettle();},100);
+}
+
+function deleteTxnRecord(fromName,toName,idx,origAmt){
+  if(!confirm('確定刪除這筆轉帳記錄？'))return;
+  var t=trip();if(!t)return;
+  /* Find the idx-th record for this pair */
+  var count=-1;
+  var globalIdx=-1;
+  for(var i=0;i<t.transfers.length;i++){
+    var tr=t.transfers[i];
+    if(tr.from===fromName&&tr.to===toName&&tr.done){
+      count++;
+      if(count===idx){globalIdx=i;break;}
+    }
+  }
+  if(globalIdx>=0){
+    t.transfers.splice(globalIdx,1);
+    fbSaveTrips();
+    renderTxnDet(fromName,toName,origAmt,null,null,null);
+    setTimeout(function(){renderSettle&&renderSettle();},100);
+  }
 }
 
 /* ══ Balance & Settle ══ */
@@ -1414,27 +1954,29 @@ function computeBal(){
   return b;
 }
 function computeBalAfterTransfers(){
-  /* Start from raw expense balances, then apply confirmed transfers */
   var b=computeBal();
   var transfers=(trip()&&trip().transfers)||[];
   transfers.forEach(function(tr){
     if(!tr.done)return;
-    /* fromName paid toName → fromName's net goes up (less debt), toName's net goes down (received) */
     b[tr.from]=(b[tr.from]||0)+tr.amt;
     b[tr.to]=(b[tr.to]||0)-tr.amt;
+  });
+  /* 小數誤差補正：-1 到 1 之間視為 0 */
+  Object.keys(b).forEach(function(m){
+    if(b[m]>-1&&b[m]<1)b[m]=0;
   });
   return b;
 }
 function simplify(bal){
   var pos=[],neg=[];
-  Object.keys(bal).forEach(function(m){var v=bal[m];if(v>0.01)pos.push({m:m,v:parseFloat(v.toFixed(2))});else if(v<-0.01)neg.push({m:m,v:parseFloat((-v).toFixed(2))});});
+  Object.keys(bal).forEach(function(m){var v=bal[m];if(v>1)pos.push({m:m,v:parseFloat(v.toFixed(2))});else if(v<-1)neg.push({m:m,v:parseFloat((-v).toFixed(2))});});
   pos.sort(function(a,b){return b.v-a.v;});neg.sort(function(a,b){return b.v-a.v;});
   var t=[];var i=0,j=0;
   while(i<pos.length&&j<neg.length){
     var g=Math.min(pos[i].v,neg[j].v);
     t.push({from:neg[j].m,to:pos[i].m,amt:parseFloat(g.toFixed(2))});
     pos[i].v=parseFloat((pos[i].v-g).toFixed(2));neg[j].v=parseFloat((neg[j].v-g).toFixed(2));
-    if(pos[i].v<0.01)i++;if(neg[j].v<0.01)j++;
+    if(pos[i].v<1)i++;if(neg[j].v<1)j++;
   }
   return t;
 }
@@ -1450,15 +1992,16 @@ function renderSettle(){
     var vRaw=balRaw[m]||0;
     var a=avOf(m);
     var cls=vAdj>0.01?'net-pos':vAdj<-0.01?'net-neg':'net-zero';
-    var txt=vAdj>0.01?'+'+baseCur()+' '+fmtN(vAdj):vAdj<-0.01?'−'+baseCur()+' '+fmtN(Math.abs(vAdj)):'±0';
-    /* Show a small delta badge if transfers changed the balance */
+    var amtTxt=vAdj>0.01?'+'+baseCur()+' '+fmtN(vAdj):vAdj<-0.01?'−'+baseCur()+' '+fmtN(Math.abs(vAdj)):'±0';
     var changed=Math.abs(vAdj-vRaw)>0.01;
-    var chip='<div class="bal-chip" onclick="openPersonDet(\''+m+'\',\'page-settle\')">'
-      +'<div class="av" style="background:'+a.bg+';color:'+a.c+';width:26px;height:26px;font-size:10px">'+m[0]+'</div>'
-      +'<span class="net-badge '+cls+'">'+txt+'</span>'
-      +(changed?'<span style="font-size:9px;color:var(--txt3);">↺</span>':'')
+    /* Card style: avatar + full name + amount */
+    return '<div class="bal-chip" onclick="openPersonDet(\''+m+'\',\'page-settle\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--bg);border:0.5px solid var(--brd);">'
+      +'<div class="av" style="background:'+a.bg+';color:'+a.c+';width:32px;height:32px;font-size:13px;flex-shrink:0;">'+m[0]+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+m+'</div>'
+      +'<div><span class="net-badge '+cls+'" style="font-size:11px;padding:1px 6px;">'+amtTxt+'</span>'+(changed?'<span style="font-size:9px;color:var(--txt3);margin-left:3px;">↺</span>':'')+'</div>'
+      +'</div>'
       +'</div>';
-    return chip;
   }).join('');
 
   /* Pending (not yet confirmed) txns from adjusted balances */
@@ -1484,7 +2027,7 @@ function renderSettle(){
 
   var doneRows=transfers.filter(function(tr){return tr.done;}).map(function(tr){
     var fa=avOf(tr.from),ta=avOf(tr.to);
-    return '<div class="srow" style="opacity:0.45;" onclick="openTxnDet(\''+tr.from+'\',\''+tr.to+'\','+tr.amt+')">'
+    return '<div class="srow" style="opacity:0.5;" onclick="openTxnDet(\''+tr.from+'\',\''+tr.to+'\','+tr.amt+')">'
       +'<div class="av" style="background:'+fa.bg+';color:'+fa.c+'">'+tr.from[0]+'</div>'
       +'<div class="srow-det">'
       +'<div class="srow-who">'+tr.from+' → '+tr.to+' <span style="font-size:11px;background:#EAF3DE;color:#27500A;padding:1px 7px;border-radius:10px;">✅ 已轉</span></div>'
@@ -1529,9 +2072,13 @@ function renderMembers(){
 function addMbr(){var inp=document.getElementById('new-mbr');var name=inp.value.trim();if(!name||members().indexOf(name)>=0)return;trip().members.push(name);inp.value='';fbSaveTrips();renderMembers();}
 function delMbr(m){if(members().length<=1){alert('至少需要一位成員');return;}trip().members=trip().members.filter(function(x){return x!==m;});fbSaveTrips();renderMembers();}
 
-/* ══ Add Expense ══ */
+/* ══ Add / Edit Expense ══ */
 function initAdd(){
   var t=trip();if(!t||t.closed){nav('page-home');return;}
+  editingExpId=null;
+  editAmtFresh=false;
+  document.querySelector('#page-add .top-bar h1').textContent='新增花費';
+  document.getElementById('add-save-btn').textContent='儲存花費';
   amtStr='';catSel='餐飲';splitMode='all';pickedM=[];
   expAmtCur=baseCur();payerSel=members().length?members()[0]:'';
   expPhotoDataUrl=null;
@@ -1547,12 +2094,67 @@ function initAdd(){
   document.querySelectorAll('.tog-btn').forEach(function(b){b.classList.remove('on');});
   document.querySelector('.tog-btn').classList.add('on');
   document.getElementById('pick-wrap').style.display='none';
-
-  /* Member warning */
   var warn=document.getElementById('no-member-warn');
   var isDefault=members().length===1&&members()[0]==='成員1';
   var needsWarn=members().length===0||isDefault;
   if(warn){warn.style.display=needsWarn?'flex':'none';}
+}
+
+function openEditExp(id){
+  var e=expenses().find(function(x){return x.id===id;});
+  if(!e)return;
+  editingExpId=id;
+  /* Navigate to add page first so elements exist */
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-add').classList.add('active');
+
+  document.querySelector('#page-add .top-bar h1').textContent='修改花費';
+  document.getElementById('add-save-btn').textContent='儲存修改';
+
+  /* Fill form with existing values */
+  amtStr=String(e.amt);
+  editAmtFresh=true; // first digit press will clear the pre-filled amount
+  catSel=e.cat;
+  expAmtCur=e.cur||baseCur();
+  payerSel=e.payer;
+  splitMode=e.split||'all';
+  pickedM=e.split==='pick'?(e.splitTo||[]):[].concat(members());
+  expPhotoDataUrl=e.photo||null;
+
+  document.getElementById('exp-desc').value=e.desc||'';
+  document.getElementById('exp-date-from').value=e.dateFrom||'';
+  document.getElementById('exp-date-to').value=e.dateTo||'';
+
+  renderCurSelector();
+  document.getElementById('amt-box').textContent=amtStr;
+  document.getElementById('rate-box').textContent=rateLabel(expAmtCur);
+  updAmt();
+
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.toggle('sel',b.dataset.cat===catSel);});
+
+  renderPayer();
+  renderPick();
+
+  /* Split mode toggle */
+  document.querySelectorAll('.tog-btn').forEach(function(b){b.classList.remove('on');});
+  var togBtns=document.querySelectorAll('.tog-btn');
+  if(splitMode==='all'&&togBtns[0])togBtns[0].classList.add('on');
+  else if(togBtns[1])togBtns[1].classList.add('on');
+  document.getElementById('pick-wrap').style.display=splitMode==='pick'?'block':'none';
+  updSplit();
+
+  /* Photo preview */
+  if(expPhotoDataUrl){
+    document.getElementById('exp-photo-thumb').src=expPhotoDataUrl;
+    document.getElementById('exp-photo-preview-wrap').style.display='block';
+  } else {
+    document.getElementById('exp-photo-preview-wrap').style.display='none';
+  }
+  document.getElementById('exp-cam-inp').value='';
+  document.getElementById('exp-file-inp').value='';
+
+  var warn=document.getElementById('no-member-warn');
+  if(warn)warn.style.display='none';
 }
 function renderCurSelector(){
   var bc=baseCur();var shown=[bc];
@@ -1564,7 +2166,9 @@ function renderCurSelector(){
 }
 function selExpCur(c){expAmtCur=c;renderCurSelector();updAmt();}
 function np(v){
-  if(v==='del')amtStr=amtStr.slice(0,-1);
+  /* In edit mode, first digit/dot press clears the pre-filled amount */
+  if(editAmtFresh&&v!=='del'){amtStr='';editAmtFresh=false;}
+  if(v==='del'){amtStr=amtStr.slice(0,-1);editAmtFresh=false;}
   else if(v==='.'){if(amtStr.indexOf('.')<0)amtStr+=v;}
   else{if(amtStr.indexOf('.')>=0){var p=amtStr.split('.');if(p[1].length>=2)return;}if(amtStr==='0')amtStr=v;else amtStr+=v;}
   updAmt();
@@ -1604,10 +2208,28 @@ function saveExp(){
   var dtVal=document.getElementById('exp-date-to').value;
   var dateDisplay=dfVal?fmtDate(dfVal)+(dtVal&&dtVal!==dfVal?' – '+fmtDate(dtVal):''):'';
   if(!dateDisplay){var n=new Date();dateDisplay=(n.getMonth()+1)+'月'+n.getDate()+'日';}
-  trip().nextId=(trip().nextId||1)+1;
-  trip().expenses.unshift({id:trip().nextId-1,desc:desc,cat:catSel,amt:amt,cur:expAmtCur,payer:payerSel,split:splitMode,splitTo:grp,date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,photo:expPhotoDataUrl});
+
+  if(editingExpId!==null){
+    /* Edit mode: find and update the existing expense */
+    var idx=-1;
+    trip().expenses.forEach(function(e,i){if(e.id===editingExpId)idx=i;});
+    if(idx>=0){
+      var orig=trip().expenses[idx];
+      trip().expenses[idx]=Object.assign({},orig,{
+        desc:desc,cat:catSel,amt:amt,cur:expAmtCur,
+        payer:payerSel,split:splitMode,splitTo:grp,
+        date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,
+        photo:expPhotoDataUrl!==null?expPhotoDataUrl:orig.photo
+      });
+    }
+    editingExpId=null;
+  } else {
+    /* New mode */
+    trip().nextId=(trip().nextId||1)+1;
+    trip().expenses.unshift({id:trip().nextId-1,desc:desc,cat:catSel,amt:amt,cur:expAmtCur,payer:payerSel,split:splitMode,splitTo:grp,date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,photo:expPhotoDataUrl});
+  }
   fbSaveTrips();
-  nav('page-home');
+  nav(expBack==='page-exp-det'?'page-home':expBack||'page-home');
 }
 
 /* ══ Expense Photo ══ */
