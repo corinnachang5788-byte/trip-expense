@@ -316,7 +316,7 @@
       <h1 id="trip-title">旅遊名稱</h1>
       <div class="top-sub" id="trip-meta"></div>
     </div>
-    <button class="icon-btn" onclick="openEditTrip()" title="修改旅遊資訊" style="font-size:16px;">✏️</button>
+    <button class="icon-btn" id="edit-trip-btn" onclick="openEditTrip()" title="修改旅遊資訊" style="font-size:16px;">✏️</button>
     <button class="icon-btn" onclick="nav('page-members')" aria-label="成員">👥</button>
   </div>
   <div class="summary-bar">
@@ -755,6 +755,7 @@ var editingTripId=null; // null=new, id=editing
 
 function openEditTrip(){
   var t=trip();if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先「取消封存」才能修改資訊。');return;}
   editingTripId=t.id;
   /* Switch page-new-trip to edit mode */
   document.getElementById('nt-page-title').textContent='修改旅遊資訊';
@@ -956,6 +957,7 @@ function changePassword(){
   function showMsg(txt,ok){msg.textContent=txt;msg.style.color=ok?'var(--green-txt)':'var(--red-txt)';msg.style.display='block';}
   if(oldV!==CURRENT_PW){showMsg('目前密碼錯誤',false);return;}
   if(!newV){showMsg('新密碼不能為空',false);return;}
+  if(/\s/.test(newV)){showMsg('密碼不能包含空格',false);return;}
   if(newV!==conf){showMsg('兩次輸入的密碼不一致',false);return;}
   if(newV.length<4){showMsg('密碼至少需要 4 個字元',false);return;}
   pwRef.set(newV).then(function(){
@@ -1478,6 +1480,7 @@ function saveTrip(){
   var dest=document.getElementById('nt-dest').value.trim();
   var df=document.getElementById('nt-date-from').value;
   var dt=document.getElementById('nt-date-to').value;
+  if(df&&dt&&dt<df){alert('結束日期不能早於開始日期');return;}
   var mStr=document.getElementById('nt-members').value.trim();
   var emojiStr=selEmojiArr.length?selEmojiArr.join(''):'✈';
 
@@ -1527,6 +1530,7 @@ function saveTrip(){
     nav('page-home');
   } else {
     /* New trip */
+    if(trips.some(function(t){return t.name.trim()===name;})){if(!confirm('已有同名旅遊「'+name+'」，確定要建立？'))return;}
     var mList=mStr?mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean):['成員1'];
     trips.push({id:nextTripId++,name:name,emoji:emojiStr,dest:dest,dateFrom:df,dateTo:dt,baseCur:newTripBaseCur,closed:false,members:mList,nextId:1,expenses:[],photos:[],transfers:[]});
     fbSaveTrips();
@@ -1538,6 +1542,8 @@ function saveTrip(){
 function renderHome(){
   var t=trip();if(!t)return;
   document.getElementById('trip-title').textContent=t.emoji+' '+t.name;
+  var editBtn=document.getElementById('edit-trip-btn');
+  if(editBtn)editBtn.style.opacity=t.closed?'0.35':'';
   var metaArr=[];
   if(t.dest)metaArr.push('📍'+t.dest);
   if(t.dateFrom&&t.dateTo)metaArr.push('🗓 '+fmtDate(t.dateFrom)+' – '+fmtDate(t.dateTo));
@@ -1919,6 +1925,7 @@ function updTxnAmt(origAmt){
 }
 
 function doTransfer(fromName,toName,origAmt){
+  var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再新增轉帳。');return;}
   var inp=document.getElementById('txn-amt-inp');
   var finalAmt=parseFloat(inp?inp.value:origAmt)||origAmt;
   if(finalAmt<=0){alert('請輸入大於 0 的金額');return;}
@@ -1936,6 +1943,7 @@ function doTransfer(fromName,toName,origAmt){
 }
 
 function deleteTxnRecord(fromName,toName,idx,origAmt){
+  var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再刪除轉帳記錄。');return;}
   if(!confirm('確定刪除這筆轉帳記錄？'))return;
   var t=trip();if(!t)return;
   /* Find the idx-th record for this pair */
@@ -2083,8 +2091,8 @@ function renderMembers(){
       +'<button class="icon-btn" onclick="delMbr(\''+m+'\')" style="color:var(--txt3);font-size:16px">✕</button></div>';
   }).join('');
 }
-function addMbr(){var inp=document.getElementById('new-mbr');var name=inp.value.trim();if(!name||members().indexOf(name)>=0)return;trip().members.push(name);inp.value='';fbSaveTrips();renderMembers();}
-function delMbr(m){if(members().length<=1){alert('至少需要一位成員');return;}trip().members=trip().members.filter(function(x){return x!==m;});fbSaveTrips();renderMembers();}
+function addMbr(){var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再修改成員。');return;}var inp=document.getElementById('new-mbr');var name=inp.value.trim();if(!name||members().indexOf(name)>=0)return;t.members.push(name);inp.value='';fbSaveTrips();renderMembers();}
+function delMbr(m){var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再修改成員。');return;}if(members().length<=1){alert('至少需要一位成員');return;}t.members=t.members.filter(function(x){return x!==m;});fbSaveTrips();renderMembers();}
 
 /* ══ Add / Edit Expense ══ */
 function initAdd(){
@@ -2115,6 +2123,7 @@ function initAdd(){
 }
 
 function openEditExp(id){
+  if(trip()&&trip().closed){alert('此旅遊已封存，請先取消封存再修改花費。');return;}
   var e=expenses().find(function(x){return x.id===id;});
   if(!e)return;
   editingExpId=id;
@@ -2213,6 +2222,7 @@ function updSplit(){
   document.getElementById('sp-mbrs').innerHTML=grp.map(function(m){var a=avOf(m);return '<div class="sp-mbr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div><span>'+baseCur()+' '+fmtN(sh)+'</span></div>';}).join('');
 }
 function saveExp(){
+  if(trip()&&trip().closed){alert('此旅遊已封存，請先取消封存再儲存花費。');return;}
   var amt=parseFloat(amtStr);var desc=document.getElementById('exp-desc').value.trim();
   if(!amt||amt<=0){alert('請輸入金額');return;}
   if(!desc){alert('請輸入說明');return;}
@@ -2220,6 +2230,7 @@ function saveExp(){
   var grp=splitMode==='pick'&&pickedM.length?[].concat(pickedM):[].concat(members());
   var dfVal=document.getElementById('exp-date-from').value;
   var dtVal=document.getElementById('exp-date-to').value;
+  if(dfVal&&dtVal&&dtVal<dfVal){alert('結束日期不能早於開始日期');return;}
   var dateDisplay=dfVal?fmtDate(dfVal)+(dtVal&&dtVal!==dfVal?' – '+fmtDate(dtVal):''):'';
   if(!dateDisplay){var n=new Date();dateDisplay=(n.getMonth()+1)+'月'+n.getDate()+'日';}
 
@@ -2284,6 +2295,7 @@ function renderAlbum(){
 }
 function albumAddPhotos(inp){
   var t=trip();if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再上傳相片。');inp.value='';return;}
   if(!t.photos)t.photos=[];
   var files=Array.prototype.slice.call(inp.files);
   var today=new Date();var dateStr=(today.getMonth()+1)+'月'+today.getDate()+'日';
@@ -2301,6 +2313,7 @@ function albumAddPhotos(inp){
 }
 function albumDelPhoto(i){
   var t=trip();if(!t||!t.photos)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再刪除相片。');return;}
   if(!confirm('確定刪除這張相片？'))return;
   t.photos.splice(i,1);fbSaveTrips();renderAlbum();
 }
