@@ -1276,7 +1276,11 @@ function openTrip(id){curTripId=id;nav('page-home');}
 /* ══ Trip List ══ */
 function renderTrips(){
   var html='';
-  trips.forEach(function(t){
+  var sortedTrips=trips.slice().sort(function(a,b){
+    var da=a.dateFrom||'';var db=b.dateFrom||'';
+    if(da>db)return -1;if(da<db)return 1;return 0;
+  });
+  sortedTrips.forEach(function(t){
     var total=t.expenses.reduce(function(s,e){return s+toBaseForTrip(e.amt,e.cur,t.baseCur);},0);
     var isClosed=t.closed;
     var metaParts=[t.members.length+' 人',t.expenses.length+' 筆',t.baseCur+' '+fmtN(total)];
@@ -1754,11 +1758,17 @@ function openPersonDet(name,from){
   document.getElementById('person-back').onclick=function(){nav(personBack);};
   document.getElementById('person-det-title').textContent=name+'的明細';
   var a=avOf(name);var bal=computeBalAfterTransfers();var myBal=bal[name]||0;
-  var paid=expenses().filter(function(e){return e.payer===name;}).reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  /* 花費付出（代墊） */
+  var paidByExp=expenses().filter(function(e){return e.payer===name;}).reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  /* 轉帳付出（已確認）*/
+  var paidByTransfer=(trip()&&trip().transfers||[]).filter(function(tr){return tr.from===name&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+  /* 轉帳收到 */
+  var receivedByTransfer=(trip()&&trip().transfers||[]).filter(function(tr){return tr.to===name&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+  var totalPaid=paidByExp+paidByTransfer-receivedByTransfer;
   var myExp=expenses().filter(function(e){var grp=e.split==='all'?members():e.splitTo;return grp.indexOf(name)>=0;});
   var totalOwed=myExp.reduce(function(s,e){var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);return s+(grp.length?b/grp.length:0);},0);
-  var balCls=myBal>0.01?'pos':myBal<-0.01?'neg':'';
-  var balTxt=myBal>0.01?'待收 '+fmtBase(myBal):myBal<-0.01?'待付 '+fmtBase(Math.abs(myBal)):'已結清';
+  var balCls=myBal>1?'pos':myBal<-1?'neg':'';
+  var balTxt=myBal>1?'待收 '+fmtBase(myBal):myBal<-1?'待付 '+fmtBase(Math.abs(myBal)):'已結清';
   var expRows=myExp.length?myExp.map(function(e){
     var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);
     var share=grp.length?b/grp.length:0;var isP=e.payer===name;var net=isP?b-share:-share;
@@ -1773,10 +1783,14 @@ function openPersonDet(name,from){
     '<div class="det-hero"><div class="av" style="background:'+a.bg+';color:'+a.c+';width:52px;height:52px;font-size:20px">'+name[0]+'</div>'
     +'<div><div style="font-size:16px;font-weight:500;color:var(--txt);margin-bottom:3px">'+name+'</div>'
     +'<div style="font-size:15px;font-weight:500" class="'+balCls+'">'+balTxt+'</div></div></div>'
-    +'<div class="pstat-grid"><div class="pstat"><div class="pstat-lbl">已付出</div><div class="pstat-val">'+fmtBaseSh(paid)+'</div></div>'
+    +'<div class="pstat-grid">'
+    +'<div class="pstat"><div class="pstat-lbl">花費代墊</div><div class="pstat-val">'+fmtBaseSh(paidByExp)+'</div></div>'
     +'<div class="pstat"><div class="pstat-lbl">應分攤</div><div class="pstat-val">'+fmtBaseSh(totalOwed)+'</div></div>'
+    +(paidByTransfer>0?'<div class="pstat"><div class="pstat-lbl">轉帳付出</div><div class="pstat-val" style="color:var(--red-txt);">'+fmtBaseSh(paidByTransfer)+'</div></div>':'')
+    +(receivedByTransfer>0?'<div class="pstat"><div class="pstat-lbl">轉帳收到</div><div class="pstat-val" style="color:var(--green-txt);">'+fmtBaseSh(receivedByTransfer)+'</div></div>':'')
     +'<div class="pstat"><div class="pstat-lbl">相關筆數</div><div class="pstat-val">'+myExp.length+' 筆</div></div>'
-    +'<div class="pstat"><div class="pstat-lbl">台幣淨額</div><div class="pstat-val">TWD '+fmtN(baseToTWD(Math.abs(myBal)))+'</div></div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">台幣淨額</div><div class="pstat-val '+(myBal>1?'pos':myBal<-1?'neg':'')+'">'+(Math.abs(myBal)<1?'TWD 0':'TWD '+fmtN(baseToTWD(Math.abs(myBal))))+'</div></div>'
+    +'</div>'
     +'<div class="sec-head">相關花費（點擊看更多）</div>'+expRows;
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('page-person-det').classList.add('active');
