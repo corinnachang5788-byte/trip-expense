@@ -1878,11 +1878,12 @@ function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
     +'style="width:100%;background:var(--green-txt);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">💸 新增這筆轉帳</button>'
     +'</div>';
 
+  /* Always compute rel for expense count in footer */
+  var rel=expenses().filter(function(e){
+    var grp=e.split==='all'?members():e.splitTo;
+    return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);
+  });
   if(!rows){
-    var rel=expenses().filter(function(e){
-      var grp=e.split==='all'?members():e.splitTo;
-      return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);
-    });
     rows=rel.length?rel.map(function(e){
       var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);var share=grp.length?b/grp.length:0;
       return '<div class="exp-row" onclick="openExpDet('+e.id+',\'page-txn-det\')">'
