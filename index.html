@@ -122,7 +122,7 @@
 .save-btn:hover{background:#6A5030;}
 /* settle */
 .settle-hdr{padding:12px 16px;border-bottom:0.5px solid var(--brd);}
-.bal-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.bal-row{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
 .bal-chip{display:flex;align-items:center;gap:5px;background:var(--bg2);border-radius:20px;padding:4px 8px 4px 5px;cursor:pointer;border:0.5px solid transparent;}
 .bal-chip:hover{border-color:var(--brd2);}
 .net-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;}
@@ -461,12 +461,16 @@
 <div class="page" id="page-settle">
   <div class="top-bar">
     <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
-    <div style="flex:1"><h1>分攤結算</h1><div style="font-size:12px;color:var(--blue-mid);font-weight:500;margin-top:2px;background:var(--blue-bg);display:inline-block;padding:2px 8px;border-radius:6px;margin-top:4px;">👆 點名字或轉帳筆看明細</div></div>
+    <h1>分攤結算</h1>
   </div>
+  <!-- 三格摘要 -->
+  <div id="settle-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--brd);border-bottom:0.5px solid var(--brd);"></div>
+  <!-- 各人淨餘額 -->
   <div class="settle-hdr">
-    <div style="font-size:12px;font-weight:500;color:var(--txt3);margin-bottom:6px">各人淨餘額</div>
+    <div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px;letter-spacing:.04em;">各人淨餘額　<span style="font-size:10px;color:var(--blue-mid);background:var(--blue-bg);padding:1px 7px;border-radius:6px;cursor:pointer;" onclick="">👆 點名字看個人明細</span></div>
     <div class="bal-row" id="bal-row"></div>
   </div>
+  <!-- 轉帳列表 -->
   <div class="sec-head" id="settle-head">需要轉帳</div>
   <div id="settle-list"></div>
   <button class="share-btn" onclick="copySettle()">📋 複製結算明細</button>
@@ -1828,6 +1832,27 @@ function srowClick(el){
   var amt=parseFloat(el.getAttribute('data-amt'));
   openTxnDet(from,to,amt);
 }
+function togglePersonCard(el){
+  var id=el.getAttribute('data-expand');
+  var panel=document.getElementById(id);
+  var arr=el.querySelector('.settle-arr');
+  if(!panel)return;
+  var open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  if(arr)arr.style.transform=open?'':'rotate(180deg)';
+}
+function personDetBtn(el){
+  try{
+    var enc=el.getAttribute('data-menc');
+    var name=enc?decodeURIComponent(escape(atob(enc))):'';
+    if(name)openPersonDet(name,'page-settle');
+  }catch(e){
+    /* fallback: try data-idx */
+    var idx=parseInt(el.getAttribute('data-idx'));
+    var name2=members()[idx];
+    if(name2)openPersonDet(name2,'page-settle');
+  }
+}
 
 function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
   fa=fa||avOf(fromName);ta=ta||avOf(toName);
@@ -2054,36 +2079,126 @@ function renderSettle(){
   var txnsAll=simplify(balRaw);
   var transfers=(trip()&&trip().transfers)||[];
 
-  /* Chip row: show adjusted balance after transfers */
-  document.getElementById('bal-row').innerHTML=members().map(function(m){
+  /* ── Summary numbers ── */
+  /* 總花費 = all expenses in base currency */
+  var totalExpense=expenses().reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  var totalOwed=0;
+  members().forEach(function(m){var v=balRaw[m]||0;if(v>1)totalOwed+=v;});
+  var totalTransferred=transfers.filter(function(tr){return tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+  var totalPending=Math.max(0,totalOwed-totalTransferred);
+  var pct=totalOwed>1?Math.min(100,Math.round(totalTransferred/totalOwed*100)):0;
+  var allDone=totalPending<1&&totalOwed>0;
+
+  /* ── Three-cell summary bar ── */
+  function sumCell(label,val,cls){
+    return '<div style="background:var(--bg);padding:12px 8px;text-align:center;">'
+      +'<div style="font-size:10px;color:var(--txt3);margin-bottom:4px;letter-spacing:.03em;">'+label+'</div>'
+      +'<div style="font-size:15px;font-weight:600;color:'+(cls||'var(--txt)')+';">'+fmtBaseSh(val)+'</div>'
+      +'<div style="font-size:10px;color:var(--txt3);">≈ TWD '+fmtN(baseToTWD(val))+'</div>'
+      +'</div>';
+  }
+  var summaryHTML=sumCell('總花費',totalExpense)
+    +sumCell('已轉帳金額',totalTransferred,'var(--green-txt)')
+    +sumCell('待轉帳餘額',totalPending,totalPending>1?'var(--red-txt)':'var(--green-txt)');
+
+  /* Progress bar inside summary */
+  summaryHTML+='<div style="grid-column:span 3;background:var(--bg);padding:6px 14px 10px;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+    +'<span style="font-size:11px;color:var(--txt3);">結算進度</span>'
+    +'<span style="font-size:11px;font-weight:500;color:'+(allDone?'var(--green-txt)':'var(--blue-mid)')+';">'
+    +(allDone?'🎉 全數結清':pct+'%')
+    +'</span></div>'
+    +'<div style="background:var(--bg3);border-radius:20px;height:6px;overflow:hidden;">'
+    +'<div style="width:'+pct+'%;height:100%;border-radius:20px;background:'+(allDone?'var(--green-txt)':'var(--blue-mid)')+';transition:width .4s;"></div>'
+    +'</div></div>';
+
+  document.getElementById('settle-summary').style.gridTemplateColumns='repeat(3,1fr)';
+  document.getElementById('settle-summary').innerHTML=summaryHTML;
+
+  /* ── Balance cards: expandable per-person summary ── */
+  var personCards=members().map(function(m){
     var vAdj=balAdj[m]||0;
     var vRaw=balRaw[m]||0;
     var a=avOf(m);
-    var cls=vAdj>0.01?'net-pos':vAdj<-0.01?'net-neg':'net-zero';
-    var amtTxt=vAdj>0.01?'+'+baseCur()+' '+fmtN(vAdj):vAdj<-0.01?'−'+baseCur()+' '+fmtN(Math.abs(vAdj)):'±0';
-    var changed=Math.abs(vAdj-vRaw)>0.01;
-    /* Card style: avatar + full name + amount */
-    return '<div class="bal-chip" onclick="openPersonDet(\''+m+'\',\'page-settle\')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--bg);border:0.5px solid var(--brd);">'
+    var cls=vAdj>1?'net-pos':vAdj<-1?'net-neg':'net-zero';
+    var amtTxt=vAdj>1?'+'+baseCur()+' '+fmtN(vAdj):vAdj<-1?'−'+baseCur()+' '+fmtN(Math.abs(vAdj)):'±0';
+    var changed=Math.abs(vAdj-vRaw)>1;
+    /* Per-person stats */
+    var pOwed=expenses().reduce(function(s,e){
+      var grp=e.split==='all'?members():e.splitTo;
+      if(grp.indexOf(m)<0)return s;
+      return s+toBase(e.amt,e.cur)/grp.length;
+    },0);
+    var paidByExp=expenses().filter(function(e){return e.payer===m;}).reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+    var pTransOut=(trip()&&trip().transfers||[]).filter(function(tr){return tr.from===m&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+    var pTransIn=(trip()&&trip().transfers||[]).filter(function(tr){return tr.to===m&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+
+    /* Determine if this person is a net payer (代墊者) or net debtor (欠款者) */
+    var netRaw=balRaw[m]||0; /* positive = paid more than owed = 待收; negative = owes money = 待付 */
+    var isPayer=netRaw>1; /* 代墊者 */
+
+    /* Labels and values differ by role */
+    var cell1Label,cell1Val,cell1Cls;
+    var cell2Label,cell2Val,cell2Cls;
+    var cell3Label,cell3Val,cell3Cls,cell3Txt;
+
+    if(isPayer){
+      /* 代墊者：應分攤=自己的份額, 已轉帳=收到的轉帳, 待轉帳=還沒收到的 */
+      cell1Label='應分攤（自己）'; cell1Val=pOwed; cell1Cls='var(--txt)';
+      cell2Label='已收到轉帳';    cell2Val=pTransIn; cell2Cls='var(--green-txt)';
+      var netPending=Math.max(0,netRaw-pTransIn);
+      cell3Label='待收轉帳';
+      cell3Val=netPending;
+      cell3Cls=netPending>1?'var(--blue-mid)':'var(--green-txt)';
+      cell3Txt=netPending>1?fmtBaseSh(netPending):'✅ 已收清';
+    } else {
+      /* 欠款者：應分攤=要付給別人的, 已轉帳=付出的轉帳, 待轉帳=還沒付的 */
+      var totalDebt=Math.abs(netRaw); /* how much this person owes */
+      cell1Label='應付金額'; cell1Val=totalDebt; cell1Cls='var(--red-txt)';
+      cell2Label='已轉帳';   cell2Val=pTransOut; cell2Cls='var(--green-txt)';
+      var stillOwing=Math.max(0,totalDebt-pTransOut);
+      cell3Label='待轉帳';
+      cell3Val=stillOwing;
+      cell3Cls=stillOwing>1?'var(--red-txt)':'var(--green-txt)';
+      cell3Txt=stillOwing>1?fmtBaseSh(stillOwing):'✅ 結清';
+    }
+
+    var mid=btoa(unescape(encodeURIComponent(m)));
+    var expandId='expand-'+mid;
+    var expandHTML='<div id="'+expandId+'" style="display:none;background:var(--bg2);border-top:0.5px solid var(--brd);padding:10px 12px;">'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">'
+      +'<div style="background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center;">'
+      +'<div style="font-size:9px;color:var(--txt3);margin-bottom:2px;">'+cell1Label+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+cell1Cls+';">'+fmtBaseSh(cell1Val)+'</div></div>'
+      +'<div style="background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center;">'
+      +'<div style="font-size:9px;color:var(--txt3);margin-bottom:2px;">'+cell2Label+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+cell2Cls+';">'+fmtBaseSh(cell2Val)+'</div></div>'
+      +'<div style="background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center;">'
+      +'<div style="font-size:9px;color:var(--txt3);margin-bottom:2px;">'+cell3Label+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+cell3Cls+';">'+cell3Txt+'</div></div>'
+      +'</div>'
+      +(paidByExp>0||pTransIn>0||pTransOut>0?'<div style="font-size:11px;color:var(--txt3);padding-bottom:6px;">'
+        +(paidByExp>0?'代墊花費：'+fmtBaseSh(paidByExp)+'　':'')
+        +(pTransIn>0?'收到轉帳：'+fmtBaseSh(pTransIn)+'　':'')
+        +(pTransOut>0?'付出轉帳：'+fmtBaseSh(pTransOut):'')
+        +'</div>':'')
+      +'<button data-menc="'+btoa(unescape(encodeURIComponent(m)))+'" onclick="personDetBtn(this)" style="width:100%;background:var(--blue-bg);border:0.5px solid var(--brd2);color:var(--blue-txt);border-radius:8px;padding:7px;font-size:12px;font-weight:500;cursor:pointer;">查看完整明細 ›</button>'
+      +'</div>';
+    return '<div style="background:var(--bg);border:0.5px solid var(--brd);border-radius:10px;overflow:hidden;">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;" data-expand="'+expandId+'" onclick="togglePersonCard(this)">'
       +'<div class="av" style="background:'+a.bg+';color:'+a.c+';width:32px;height:32px;font-size:13px;flex-shrink:0;">'+m[0]+'</div>'
       +'<div style="flex:1;min-width:0;">'
       +'<div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+m+'</div>'
-      +'<div><span class="net-badge '+cls+'" style="font-size:11px;padding:1px 6px;">'+amtTxt+'</span>'+(changed?'<span style="font-size:9px;color:var(--txt3);margin-left:3px;">↺</span>':'')+'</div>'
+      +'<span class="net-badge '+cls+'" style="font-size:11px;padding:1px 6px;">'+amtTxt+'</span>'+(changed?'<span style="font-size:9px;color:var(--txt3);margin-left:3px;">↺</span>':'')
       +'</div>'
-      +'</div>';
+      +'<span class="settle-arr" style="font-size:13px;color:var(--txt3);transition:transform .2s;">▾</span>'
+      +'</div>'
+      +expandHTML+'</div>';
   }).join('');
+  document.getElementById('bal-row').innerHTML=personCards;
 
-  /* Pending (not yet confirmed) txns from adjusted balances */
+  /* ── Pending / done rows ── */
   var txnsPending=simplify(balAdj);
-  var doneCount=txnsAll.length-txnsPending.length;
-  if(doneCount<0)doneCount=0;
-
-  /* Header */
-  var headParts=[];
-  if(doneCount>0)headParts.push('已轉 '+doneCount+' 筆');
-  headParts.push('待轉 '+txnsPending.length+' 筆');
-  document.getElementById('settle-head').textContent='需要轉帳（'+headParts.join('・')+'）';
-
-  /* List: show pending txns first, then done ones greyed */
   var pendingRows=txnsPending.map(function(t){
     var fa=avOf(t.from),ta=avOf(t.to);
     return '<div class="srow" data-from="'+t.from+'" data-to="'+t.to+'" data-amt="'+t.amt+'" onclick="srowClick(this)">'
@@ -2105,15 +2220,15 @@ function renderSettle(){
       +'<span class="chev">›</span></div>';
   });
 
-  if(!pendingRows.length&&!doneRows.length){
-    document.getElementById('settle-list').innerHTML='<div class="empty">結算完成！大家費用均等</div>';
-  } else if(!pendingRows.length){
-    document.getElementById('settle-list').innerHTML=
-      '<div style="padding:10px 16px 4px;font-size:11px;font-weight:500;color:var(--green-txt);">🎉 所有轉帳已完成</div>'
-      +doneRows.join('');
+  /* Header label */
+  var headParts=[];
+  if(pendingRows.length)headParts.push('待轉 '+pendingRows.length+' 筆');
+  document.getElementById('settle-head').textContent='轉帳明細'+(headParts.length?'（'+headParts.join('・')+'）':'');
+
+  if(!pendingRows.length){
+    document.getElementById('settle-list').innerHTML='<div class="empty" style="padding:20px 16px;">🎉 所有人已結清，無需轉帳</div>';
   } else {
-    var sep=doneRows.length?'<div style="padding:8px 16px 4px;font-size:11px;font-weight:500;color:var(--txt3);">已完成</div>':'';
-    document.getElementById('settle-list').innerHTML=pendingRows.join('')+sep+doneRows.join('');
+    document.getElementById('settle-list').innerHTML=pendingRows.join('');
   }
 }
 function copySettle(){
