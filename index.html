@@ -1822,14 +1822,28 @@ function openTxnDet(fromName,toName,origAmt){
   document.getElementById('page-txn-det').classList.add('active');
 }
 
+function srowClick(el){
+  var from=el.getAttribute('data-from');
+  var to=el.getAttribute('data-to');
+  var amt=parseFloat(el.getAttribute('data-amt'));
+  openTxnDet(from,to,amt);
+}
+
 function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
   fa=fa||avOf(fromName);ta=ta||avOf(toName);
 
-  /* Transfer history for this pair */
+  /* Suggested amount = raw expense balance for fromName (before any transfers) */
+  var rawBal=computeBal();   /* expenses only, NO transfers */
+  var fromRaw=rawBal[fromName]||0;
+  /* fromName owes money → rawBal is negative → take abs as suggested total */
+  var liveOrig=fromRaw<-1?Math.abs(fromRaw):origAmt;
+
+  /* Transfer history for this pair (fromName → toName only) */
   var t=trip();
   var history=(t&&t.transfers||[]).filter(function(tr){return tr.from===fromName&&tr.to===toName&&tr.done;});
   var totalTransferred=history.reduce(function(s,tr){return s+tr.amt;},0);
-  var remaining=Math.max(0,origAmt-totalTransferred);
+  /* remaining = original debt - already transferred */
+  var remaining=Math.max(0,liveOrig-totalTransferred);
 
   /* History rows */
   var historyHTML='';
@@ -1844,7 +1858,7 @@ function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
         +'<div style="font-size:11px;color:var(--txt3);">'+tr.date+'  ≈ TWD '+fmtN(baseToTWD(tr.amt))+'</div>'
         +'</div>'
         +'<span style="font-size:11px;background:var(--green-bg);color:var(--green-txt);padding:2px 8px;border-radius:10px;">✅ 已轉</span>'
-        +'<button onclick="deleteTxnRecord(\''+fromName+'\',\''+toName+'\','+i+','+origAmt+')" '
+        +'<button data-from="'+fromName+'" data-to="'+toName+'" data-idx="'+i+'" data-orig="'+origAmt+'" onclick="delTxnBtn(this)" '
         +'style="background:none;border:0.5px solid var(--red-txt);color:var(--red-txt);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">刪除</button>'
         +'</div>';
     });
@@ -1863,21 +1877,28 @@ function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
     historyHTML+='</div>';
   }
 
-  /* New transfer input */
-  var suggestAmt=remaining>0.5?remaining:origAmt;
-  var newTransferHTML='<div style="width:100%;background:var(--bg2);border-radius:12px;padding:14px 16px;">'
-    +'<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:500;">新增轉帳金額（'+baseCur()+'）</div>'
-    +'<input id="txn-amt-inp" type="number" step="0.01" min="0" value="'+suggestAmt.toFixed(2)+'" '
-    +'style="width:100%;background:var(--bg);border:0.5px solid var(--brd2);border-radius:8px;padding:10px 12px;font-size:20px;font-weight:500;color:var(--txt);outline:none;text-align:center;box-sizing:border-box;" '
-    +'oninput="updTxnAmt('+origAmt+')">'
-    +'<div id="txn-twd-lbl" style="font-size:12px;color:var(--txt3);margin-top:5px;text-align:center;">≈ TWD '+fmtN(baseToTWD(suggestAmt))+'</div>'
-    +'<div id="txn-diff-lbl" style="font-size:11px;color:var(--txt3);margin-top:2px;text-align:center;height:16px;"></div>'
-    +'</div>'
-    +'<div style="padding:10px 16px 0;">'
-    +'<button id="txn-transfer-btn" onclick="doTransfer(\''+fromName+'\',\''+toName+'\','+origAmt+')" '
-    +'style="width:100%;background:var(--green-txt);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">💸 新增這筆轉帳</button>'
-    +'</div>';
-
+  /* New transfer input — hide if trip is closed OR already fully settled */
+  var isClosed=trip()&&trip().closed;
+  var isSettled=remaining<=0.5&&history.length>0;
+  var newTransferHTML=isClosed
+    ?'<div style="padding:14px 16px;text-align:center;font-size:13px;color:var(--txt3);">📦 旅遊已封存，無法新增轉帳</div>'
+    :isSettled
+    ?'' /* settled: no new transfer input needed */
+    :(function(){
+      var suggestAmt=remaining>0.5?remaining:origAmt;
+      return '<div style="width:100%;background:var(--bg2);border-radius:12px;padding:14px 16px;">'
+        +'<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:500;">新增轉帳金額（'+baseCur()+'）　上限：'+baseCur()+' '+fmtN(remaining||origAmt)+'</div>'
+        +'<input id="txn-amt-inp" type="number" step="0.01" min="0.01" max="'+(remaining||origAmt)+'" value="'+suggestAmt.toFixed(2)+'" '
+        +'style="width:100%;background:var(--bg);border:0.5px solid var(--brd2);border-radius:8px;padding:10px 12px;font-size:20px;font-weight:500;color:var(--txt);outline:none;text-align:center;box-sizing:border-box;" '
+        +'oninput="updTxnAmt('+origAmt+','+(remaining||origAmt)+')">'
+        +'<div id="txn-twd-lbl" style="font-size:12px;color:var(--txt3);margin-top:5px;text-align:center;">≈ TWD '+fmtN(baseToTWD(suggestAmt))+'</div>'
+        +'<div id="txn-diff-lbl" style="font-size:11px;margin-top:2px;text-align:center;height:16px;"></div>'
+        +'</div>'
+        +'<div style="padding:10px 16px 0;">'
+        +'<button id="txn-transfer-btn" data-from="'+fromName+'" data-to="'+toName+'" data-orig="'+origAmt+'" data-max="'+(remaining||origAmt)+'" onclick="doTransferBtn(this)" '
+        +'style="width:100%;background:var(--green-txt);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">💸 新增這筆轉帳</button>'
+        +'</div>';
+    })();
   /* Always compute rel for expense count in footer */
   var rel=expenses().filter(function(e){
     var grp=e.split==='all'?members():e.splitTo;
@@ -1902,8 +1923,8 @@ function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
     +'</div>'
     +'<div style="text-align:center;">'
     +'<div style="font-size:12px;color:var(--txt3);">建議轉帳金額</div>'
-    +'<div style="font-size:22px;font-weight:500;color:var(--txt);">'+fmtBase(origAmt)+'</div>'
-    +'<div style="font-size:12px;color:var(--txt3);">≈ TWD '+fmtN(baseToTWD(origAmt))+'</div>'
+    +'<div style="font-size:22px;font-weight:500;color:var(--txt);">'+fmtBase(liveOrig)+'</div>'
+    +'<div style="font-size:12px;color:var(--txt3);">≈ TWD '+fmtN(baseToTWD(liveOrig))+'</div>'
     +'</div>'
     +'</div>'
     +historyHTML
@@ -1911,12 +1932,20 @@ function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
     +'<div class="sec-head">相關花費（'+rel.length+' 筆，點擊看明細）</div>'+rows;
 }
 
-function updTxnAmt(origAmt){
+function updTxnAmt(origAmt,maxAmt){
   var v=parseFloat(document.getElementById('txn-amt-inp').value)||0;
   document.getElementById('txn-twd-lbl').textContent='≈ TWD '+fmtN(baseToTWD(v));
-  var diff=v-origAmt;
   var diffEl=document.getElementById('txn-diff-lbl');
-  if(Math.abs(diff)>0.01){
+  var btn=document.getElementById('txn-transfer-btn');
+  if(maxAmt&&v>maxAmt+0.5){
+    diffEl.textContent='⚠ 超過尚待金額 '+baseCur()+' '+fmtN(maxAmt)+'，請修正';
+    diffEl.style.color='var(--red-txt)';
+    if(btn){btn.disabled=true;btn.style.opacity='0.45';}
+    return;
+  }
+  if(btn){btn.disabled=false;btn.style.opacity='';}
+  var diff=v-origAmt;
+  if(Math.abs(diff)>0.5){
     diffEl.textContent=(diff>0?'較建議金額多 ':'較建議金額少 ')+baseCur()+' '+fmtN(Math.abs(diff));
     diffEl.style.color=diff>0?'var(--amber-txt)':'var(--blue-mid)';
   } else {
@@ -1925,20 +1954,36 @@ function updTxnAmt(origAmt){
   }
 }
 
-function doTransfer(fromName,toName,origAmt){
+function doTransferBtn(el){
+  var from=el.getAttribute('data-from');
+  var to=el.getAttribute('data-to');
+  var orig=parseFloat(el.getAttribute('data-orig'));
+  var max=parseFloat(el.getAttribute('data-max'))||orig;
+  doTransfer(from,to,orig,max);
+}
+function delTxnBtn(el){
+  var from=el.getAttribute('data-from');
+  var to=el.getAttribute('data-to');
+  var idx=parseInt(el.getAttribute('data-idx'));
+  var orig=parseFloat(el.getAttribute('data-orig'));
+  deleteTxnRecord(from,to,idx,orig);
+}
+
+function doTransfer(fromName,toName,origAmt,maxAmt){
   var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再新增轉帳。');return;}
   var inp=document.getElementById('txn-amt-inp');
   var finalAmt=parseFloat(inp?inp.value:origAmt)||origAmt;
   if(finalAmt<=0){alert('請輸入大於 0 的金額');return;}
+  if(maxAmt&&finalAmt>maxAmt+0.5){
+    alert('轉帳金額（'+baseCur()+' '+fmtN(finalAmt)+'）超過尚待金額（'+baseCur()+' '+fmtN(maxAmt)+'），請修正後再確認。');
+    return;
+  }
   var msg=fromName+' 轉給 '+toName+'\n金額：'+baseCur()+' '+fmtN(finalAmt)+'（≈ TWD '+fmtN(baseToTWD(finalAmt))+'）\n\n確認新增這筆轉帳？';
   if(!confirm(msg))return;
-  var t=trip();if(t){
-    if(!t.transfers)t.transfers=[];
-    /* Append (not replace) — support multiple partial transfers */
-    t.transfers.push({from:fromName,to:toName,amt:finalAmt,date:new Date().toISOString().slice(0,10),done:true});
-    fbSaveTrips();
-  }
-  /* Re-render this page to show updated history */
+  if(!t){return;}
+  if(!t.transfers)t.transfers=[];
+  t.transfers.push({from:fromName,to:toName,amt:finalAmt,date:new Date().toISOString().slice(0,10),done:true});
+  fbSaveTrips();
   renderTxnDet(fromName,toName,origAmt,null,null,null);
   setTimeout(function(){renderSettle&&renderSettle();},100);
 }
@@ -2041,7 +2086,7 @@ function renderSettle(){
   /* List: show pending txns first, then done ones greyed */
   var pendingRows=txnsPending.map(function(t){
     var fa=avOf(t.from),ta=avOf(t.to);
-    return '<div class="srow" onclick="openTxnDet(\''+t.from+'\',\''+t.to+'\','+t.amt+')">'
+    return '<div class="srow" data-from="'+t.from+'" data-to="'+t.to+'" data-amt="'+t.amt+'" onclick="srowClick(this)">'
       +'<div class="av" style="background:'+fa.bg+';color:'+fa.c+'">'+t.from[0]+'</div>'
       +'<div class="srow-det"><div class="srow-who">'+t.from+' → '+t.to+'</div><div class="srow-sub">≈ TWD '+fmtN(baseToTWD(t.amt))+'</div></div>'
       +'<div class="av" style="background:'+ta.bg+';color:'+ta.c+'">'+t.to[0]+'</div>'
@@ -2050,7 +2095,7 @@ function renderSettle(){
 
   var doneRows=transfers.filter(function(tr){return tr.done;}).map(function(tr){
     var fa=avOf(tr.from),ta=avOf(tr.to);
-    return '<div class="srow" style="opacity:0.5;" onclick="openTxnDet(\''+tr.from+'\',\''+tr.to+'\','+tr.amt+')">'
+    return '<div class="srow" style="opacity:0.5;" data-from="'+tr.from+'" data-to="'+tr.to+'" data-amt="'+tr.amt+'" onclick="srowClick(this)">'
       +'<div class="av" style="background:'+fa.bg+';color:'+fa.c+'">'+tr.from[0]+'</div>'
       +'<div class="srow-det">'
       +'<div class="srow-who">'+tr.from+' → '+tr.to+' <span style="font-size:11px;background:#EAF3DE;color:#27500A;padding:1px 7px;border-radius:10px;">✅ 已轉</span></div>'
