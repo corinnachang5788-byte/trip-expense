@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <!-- Firebase SDK -->
@@ -810,11 +809,10 @@ function showSyncErr(){
 /* ══ Firebase 寫入 ══ */
 function fbSaveTrips(){
   showSyncing();
-  /* Convert arrays to Firebase-safe objects (no undefined, no circular refs) */
   var data={};
   trips.forEach(function(t){
     var tc=JSON.parse(JSON.stringify(t));
-    /* Firebase doesn't allow arrays with holes — convert expenses/photos to object maps */
+    console.log('[save] trip'+t.id+' expenses count=',tc.expenses?tc.expenses.length:'null');
     if(tc.expenses){
       var em={};tc.expenses.forEach(function(e,i){em['e'+e.id]=e;});tc.expenses=em;
     }
@@ -830,7 +828,14 @@ function fbSaveTrips(){
     data['trip'+t.id]=tc;
   });
   data['_nextTripId']=nextTripId;
-  tripsRef.set(data).then(showSynced).catch(showSyncErr);
+  console.log('[save] calling tripsRef.set with',Object.keys(data).length,'keys');
+  tripsRef.set(data).then(function(){
+    showSynced();
+    console.log('[save] set SUCCESS');
+  }).catch(function(e){
+    showSyncErr();
+    console.error('[save] set FAILED',e);
+  });
 }
 
 /* ══ Firebase 讀取並轉回陣列 ══ */
@@ -840,23 +845,20 @@ function fbParse(raw){
   Object.keys(raw).forEach(function(k){
     if(k==='_nextTripId'){nextTripId=raw[k];return;}
     var t=raw[k];
-    /* Convert members map → array */
     if(t.members&&!Array.isArray(t.members)){
       var marr=[];Object.keys(t.members).sort().forEach(function(mk){marr.push(t.members[mk]);});t.members=marr;
     }
-    /* Convert expenses map → array */
     if(t.expenses&&!Array.isArray(t.expenses)){
       var earr=[];Object.keys(t.expenses).forEach(function(ek){earr.push(t.expenses[ek]);});
       earr.sort(function(a,b){return b.id-a.id;});t.expenses=earr;
     } else if(!t.expenses){t.expenses=[];}
-    /* Convert photos map → array */
     if(t.photos&&!Array.isArray(t.photos)){
       var parr=[];Object.keys(t.photos).sort().forEach(function(pk){parr.push(t.photos[pk]);});t.photos=parr;
     } else if(!t.photos){t.photos=[];}
-    /* Convert transfers map → array */
     if(t.transfers&&!Array.isArray(t.transfers)){
       var tarr=[];Object.keys(t.transfers).forEach(function(tk){tarr.push(t.transfers[tk]);});t.transfers=tarr;
     } else if(!t.transfers){t.transfers=[];}
+    console.log('[parse] trip'+t.id+' expenses=',t.expenses.length,'transfers=',t.transfers.length);
     parsed.push(t);
   });
   parsed.sort(function(a,b){return a.id-b.id;});
