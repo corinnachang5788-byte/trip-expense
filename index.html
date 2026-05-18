@@ -209,6 +209,7 @@
 .exp-photo-badge{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;}
 /* receipt thumb in detail */
 .receipt-img{width:100%;border-radius:10px;margin-top:8px;cursor:pointer;object-fit:cover;max-height:220px;}
+@media (hover:none){.exp-del-btn{opacity:0.35 !important;}}
 .dropdown-item{display:flex;align-items:center;padding:10px 14px;cursor:pointer;border-bottom:0.5px solid var(--brd);}
 .dropdown-item:last-child{border-bottom:none;}
 .dropdown-item:hover{background:var(--bg2);}
@@ -541,6 +542,7 @@
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="">
   <div class="lightbox-cap" id="lb-cap"></div>
+  <button id="lb-download-btn" onclick="event.stopPropagation();downloadPhotoByUrl(document.getElementById('lb-img').src,document.getElementById('lb-cap').textContent)" style="margin-top:12px;background:rgba(255,255,255,0.18);color:#fff;border:0.5px solid rgba(255,255,255,0.4);border-radius:8px;padding:8px 20px;font-size:13px;cursor:pointer;">⬇ 下載相片</button>
 </div>
 
 
@@ -1573,12 +1575,17 @@ function renderHome(){
       var c=ccOf(e.cat);
       var baseAmt=toBase(e.amt,e.cur);
       var amtLabel=e.cur===baseCur()?baseCur()+' '+fmtN(e.amt):e.cur+' '+fmtN(e.amt)+' (≈'+baseCur()+' '+fmtN(baseAmt)+')';
-      html+='<div class="exp-row" onclick="openExpDet('+e.id+',\'page-home\')">'
+      html+='<div class="exp-row" style="position:relative;" onclick="openExpDet('+e.id+',\'page-home\')">'
         +'<div class="cat-icon" style="background:'+c.bg+';font-size:18px">'+c.e+'</div>'
         +'<div class="exp-main"><div class="exp-name">'+e.desc+'</div>'
         +'<div class="exp-meta">'+e.cat+'・'+(e.split==='all'?'全體平攤':'僅 '+e.splitTo.length+' 人')+(e.photo?' 📎':'')+'</div></div>'
         +'<div class="exp-right"><div class="exp-amt">'+amtLabel+'</div>'
-        +'<div class="exp-who">'+e.payer+'付 ›</div></div></div>';
+        +'<div class="exp-who">'+e.payer+'付</div></div>'
+        +'<button class="exp-del-btn" data-eid="'+e.id+'" onclick="delExpFromList(event,this)" style="position:absolute;right:0;top:0;bottom:0;width:44px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--red-txt);opacity:0;" '
+        +'onmouseenter="this.style.opacity=\'1\';this.style.background=\'var(--red-bg)\'" '
+        +'onmouseleave="this.style.opacity=\'0\';this.style.background=\'transparent\'" '
+        +'title="刪除">🗑</button>'
+        +'</div>';
     });
   });
   document.getElementById('exp-list').innerHTML=html;
@@ -1754,13 +1761,93 @@ function openExpDet(id,from){
       ?'<div style="padding:12px 16px;font-size:13px;color:var(--txt3);text-align:center">📦 旅遊已封存，如需編輯請先取消封存</div>'
       :'<div style="display:flex;gap:8px;margin:14px 16px;">'
         +'<button onclick="openEditExp('+e.id+')" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);color:var(--txt);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">✏️ 修改</button>'
-        +'<button class="del-btn" onclick="delExp('+e.id+')" style="flex:1;margin:0;">🗑 刪除</button>'
-        +'</div>')
+        +'<button onclick="showDelOptions('+e.id+')" style="flex:1;background:var(--red-bg);border:0.5px solid var(--red-txt);color:var(--red-txt);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;margin:0;">🗑 刪除</button>'
+        +'</div>'
+      +'<div id="del-options-'+e.id+'" style="display:none;margin:0 16px 14px;background:var(--bg2);border-radius:10px;overflow:hidden;border:0.5px solid var(--brd2);">'
+        +'<div style="padding:10px 14px 6px;font-size:12px;color:var(--txt2);font-weight:500;">請選擇刪除方式：</div>'
+        +'<button onclick="delExp('+e.id+')" style="width:100%;text-align:left;background:none;border:none;border-top:0.5px solid var(--brd);padding:11px 14px;font-size:13px;color:var(--txt);cursor:pointer;">'
+          +'🗑 只刪花費記錄 <span style="font-size:11px;color:var(--txt3);">（保留已轉帳記錄）</span>'
+        +'</button>'
+        +'<button onclick="delExpAndTransfers('+e.id+',\''+e.payer+'\')" style="width:100%;text-align:left;background:none;border:none;border-top:0.5px solid var(--brd);padding:11px 14px;font-size:13px;color:var(--red-txt);cursor:pointer;">'
+          +'💥 整筆刪除 <span style="font-size:11px;color:var(--txt3);">（同時刪除花費＋相關轉帳）</span>'
+        +'</button>'
+        +'<button onclick="hideDelOptions('+e.id+')" style="width:100%;text-align:left;background:none;border:none;border-top:0.5px solid var(--brd);padding:11px 14px;font-size:13px;color:var(--txt3);cursor:pointer;">取消</button>'
+      +'</div>')
     +(e.photo?'<div style="padding:12px 16px;"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:6px">收據 / 相片</div><img class="receipt-img" src="'+e.photo+'" alt="收據" onclick="openLightboxDirect(\''+e.id+'\')"></div>':'');
   document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
   document.getElementById('page-exp-det').classList.add('active');
 }
-function delExp(id){trip().expenses=trip().expenses.filter(function(e){return e.id!==id;});fbSaveTrips();nav(expBack);}
+function showDelOptions(id){
+  document.getElementById('del-options-'+id).style.display='block';
+}
+function hideDelOptions(id){
+  document.getElementById('del-options-'+id).style.display='none';
+}
+function delExpAndTransfers(expId,payer){
+  var t=trip();if(!t)return;
+  var expIdNum=parseInt(expId);
+  var curIdNum=parseInt(curTripId);
+  /* Find trip index */
+  var tidx=-1;
+  for(var i=0;i<trips.length;i++){if(parseInt(trips[i].id)===curIdNum){tidx=i;break;}}
+  if(tidx<0){alert('找不到旅遊資料');return;}
+  /* Find expense */
+  var e=(trips[tidx].expenses||[]).filter(function(x){return parseInt(x.id)===expIdNum;})[0];
+  if(!e)return;
+  /* Count related transfers to payer */
+  var relTrans=(trips[tidx].transfers||[]).filter(function(tr){return tr.to===payer&&tr.done;});
+  var msg='整筆刪除「'+e.desc+'」\n\n・刪除花費記錄\n';
+  if(relTrans.length)msg+='・同時刪除 '+relTrans.length+' 筆付款人（'+payer+'）收到的轉帳記錄\n\n⚠ 此操作無法復原。';
+  else msg+='\n此操作無法復原。';
+  if(!confirm(msg))return;
+  /* Delete expense */
+  trips[tidx].expenses=trips[tidx].expenses.filter(function(x){return parseInt(x.id)!==expIdNum;});
+  /* Delete related transfers to payer */
+  if(relTrans.length){
+    trips[tidx].transfers=(trips[tidx].transfers||[]).filter(function(tr){return !(tr.to===payer&&tr.done);});
+  }
+  fbSaveTrips();
+  nav(expBack);
+}
+
+function _deleteExpById(expId){
+  var expIdNum=parseInt(expId);
+  var curId=parseInt(curTripId);
+  var tidx=-1;
+  for(var i=0;i<trips.length;i++){
+    if(parseInt(trips[i].id)===curId){tidx=i;break;}
+  }
+  console.log('[del] curTripId=',curTripId,'('+curId+') tidx=',tidx,'expId=',expIdNum);
+  if(tidx<0){console.log('[del] FAILED: trip not found');return false;}
+  var before=trips[tidx].expenses.length;
+  trips[tidx].expenses=trips[tidx].expenses.filter(function(e){return parseInt(e.id)!==expIdNum;});
+  var after=trips[tidx].expenses.length;
+  console.log('[del] expenses before=',before,'after=',after,'success=',after<before);
+  return after<before;
+}
+
+function delExpFromList(ev,btn){
+  ev.stopPropagation();
+  var t=trip();
+  if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再刪除花費。');return;}
+  var id=parseInt(btn.getAttribute('data-eid'));
+  var found=(t.expenses||[]).filter(function(x){return x.id===id;});
+  if(!found.length)return;
+  if(!confirm('確定刪除「'+found[0].desc+'」？\n刪除後無法復原。'))return;
+  if(_deleteExpById(id))fbSaveTrips();
+}
+
+function delExp(id){
+  var expIdNum=parseInt(id);
+  var curIdNum=parseInt(curTripId);
+  var tidx=-1;
+  for(var i=0;i<trips.length;i++){if(parseInt(trips[i].id)===curIdNum){tidx=i;break;}}
+  if(tidx<0)return;
+  trips[tidx].expenses=trips[tidx].expenses.filter(function(e){return parseInt(e.id)!==expIdNum;});
+  fbSaveTrips();
+  nav(expBack);
+}
 
 /* ══ Person Detail ══ */
 function openPersonDet(name,from){
@@ -1883,7 +1970,7 @@ function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
         +'<div style="font-size:11px;color:var(--txt3);">'+tr.date+'  ≈ TWD '+fmtN(baseToTWD(tr.amt))+'</div>'
         +'</div>'
         +'<span style="font-size:11px;background:var(--green-bg);color:var(--green-txt);padding:2px 8px;border-radius:10px;">✅ 已轉</span>'
-        +'<button data-from="'+fromName+'" data-to="'+toName+'" data-idx="'+i+'" data-orig="'+origAmt+'" onclick="delTxnBtn(this)" '
+        +'<button data-fenc="'+btoa(unescape(encodeURIComponent(fromName)))+'" data-tenc="'+btoa(unescape(encodeURIComponent(toName)))+'" data-idx="'+i+'" data-orig="'+origAmt+'" onclick="delTxnBtn(this)" '
         +'style="background:none;border:0.5px solid var(--red-txt);color:var(--red-txt);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">刪除</button>'
         +'</div>';
     });
@@ -1987,11 +2074,13 @@ function doTransferBtn(el){
   doTransfer(from,to,orig,max);
 }
 function delTxnBtn(el){
-  var from=el.getAttribute('data-from');
-  var to=el.getAttribute('data-to');
-  var idx=parseInt(el.getAttribute('data-idx'));
-  var orig=parseFloat(el.getAttribute('data-orig'));
-  deleteTxnRecord(from,to,idx,orig);
+  try{
+    var from=decodeURIComponent(escape(atob(el.getAttribute('data-fenc'))));
+    var to=decodeURIComponent(escape(atob(el.getAttribute('data-tenc'))));
+    var idx=parseInt(el.getAttribute('data-idx'));
+    var orig=parseFloat(el.getAttribute('data-orig'));
+    deleteTxnRecord(from,to,idx,orig);
+  }catch(e){console.error('delTxnBtn error:',e);}
 }
 
 function doTransfer(fromName,toName,origAmt,maxAmt){
@@ -2014,9 +2103,11 @@ function doTransfer(fromName,toName,origAmt,maxAmt){
 }
 
 function deleteTxnRecord(fromName,toName,idx,origAmt){
-  var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再刪除轉帳記錄。');return;}
+  var t=trip();
+  if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再刪除轉帳記錄。');return;}
   if(!confirm('確定刪除這筆轉帳記錄？'))return;
-  var t=trip();if(!t)return;
+  if(!t.transfers||!t.transfers.length)return;
   /* Find the idx-th record for this pair */
   var count=-1;
   var globalIdx=-1;
@@ -2032,6 +2123,8 @@ function deleteTxnRecord(fromName,toName,idx,origAmt){
     fbSaveTrips();
     renderTxnDet(fromName,toName,origAmt,null,null,null);
     setTimeout(function(){renderSettle&&renderSettle();},100);
+  } else {
+    alert('找不到該筆轉帳記錄，請重新整理後再試。');
   }
 }
 
@@ -2450,6 +2543,7 @@ function renderAlbum(){
     return '<div class="photo-thumb-wrap">'
       +'<img class="photo-thumb" src="'+p.src+'" alt="'+(p.cap||'')+'" onclick="openLightbox('+i+')">'
       +'<button class="photo-del" onclick="albumDelPhoto('+i+')">✕</button>'
+      +'<button onclick="downloadPhoto('+i+')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;" title="下載">⬇</button>'
       +'<div class="photo-caption">'+(p.cap||p.date||'')+'</div>'
       +'</div>';
   }).join('');
@@ -2471,6 +2565,24 @@ function albumAddPhotos(inp){
     reader.readAsDataURL(file);
   });
   inp.value='';
+}
+function downloadPhoto(i){
+  var t=trip();if(!t||!t.photos)return;
+  var p=t.photos[i];if(!p)return;
+  downloadPhotoByUrl(p.src,p.cap||p.date||('相片_'+i));
+}
+function downloadPhotoByUrl(src,name){
+  var a=document.createElement('a');
+  a.href=src;
+  /* Determine extension from data URL or default to jpg */
+  var ext='jpg';
+  if(src.indexOf('image/png')>-1)ext='png';
+  else if(src.indexOf('image/gif')>-1)ext='gif';
+  else if(src.indexOf('image/webp')>-1)ext='webp';
+  a.download=(name||'photo').replace(/[/\\:*?"<>|]/g,'_')+'.'+ext;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 function albumDelPhoto(i){
   var t=trip();if(!t||!t.photos)return;
