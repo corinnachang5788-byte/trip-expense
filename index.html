@@ -2442,20 +2442,46 @@ function renderCurSelector(){
 }
 function selExpCur(c){expAmtCur=c;renderCurSelector();updAmt();}
 function np(v){
-  /* In edit mode, first digit/dot press clears the pre-filled amount */
   if(editAmtFresh&&v!=='del'){amtStr='';editAmtFresh=false;}
   if(v==='del'){amtStr=amtStr.slice(0,-1);editAmtFresh=false;}
   else if(v==='.'){if(amtStr.indexOf('.')<0)amtStr+=v;}
   else{if(amtStr.indexOf('.')>=0){var p=amtStr.split('.');if(p[1].length>=2)return;}if(amtStr==='0')amtStr=v;else amtStr+=v;}
-  updAmt();
+  /* Fast update: only change the display box and TWD label, skip full updSplit re-render */
+  var val=parseFloat(amtStr)||0;
+  var baseAmt=toBase(val,expAmtCur);
+  /* Format display: integer part with commas, keep decimal part as-is during typing */
+  var dispStr='0';
+  if(amtStr&&amtStr!==''){
+    var parts=amtStr.split('.');
+    var intPart=parseInt(parts[0]||'0');
+    var formatted=isNaN(intPart)?'0':intPart.toLocaleString();
+    dispStr=formatted+(parts.length>1?'.'+parts[1]:'');
+  }
+  document.getElementById('amt-box').textContent=dispStr;
+  var twdAmt=baseToTWD(baseAmt);
+  var rateStr='';
+  if(expAmtCur!==baseCur())rateStr=expAmtCur+' '+fmtN(val)+' → '+baseCur()+' '+fmtN(baseAmt)+'　｜　';
+  document.getElementById('twd-rate').textContent=rateStr+'≈ TWD '+fmtN(twdAmt);
+  /* Update split amount label only (no DOM rebuild) */
+  var grp=splitMode==='all'?[].concat(members()):(pickedM.length?[].concat(pickedM):[].concat(members()));
+  var sh=grp.length?baseAmt/grp.length:0;
+  document.getElementById('sp-lbl').textContent='每人分攤 '+fmtBase(sh);
+  /* Only rebuild sp-mbrs if amount changed meaningfully */
+  document.getElementById('sp-mbrs').innerHTML=grp.map(function(m){var a=avOf(m);return '<div class="sp-mbr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div><span>'+baseCur()+' '+fmtN(sh)+'</span></div>';}).join('');
 }
 function updAmt(){
   var val=parseFloat(amtStr)||0;
   var baseAmt=toBase(val,expAmtCur);
-  document.getElementById('amt-box').textContent=amtStr||'0.00';
-  /* Rate label */
+  /* Format with commas */
+  var dispStr='0';
+  if(amtStr&&amtStr!==''){
+    var parts=amtStr.split('.');
+    var intPart=parseInt(parts[0]||'0');
+    var formatted=isNaN(intPart)?'0':intPart.toLocaleString();
+    dispStr=formatted+(parts.length>1?'.'+parts[1]:'');
+  }
+  document.getElementById('amt-box').textContent=dispStr||'0';
   document.getElementById('rate-box').textContent=rateLabel(expAmtCur);
-  /* TWD conversion */
   var twdAmt=baseToTWD(baseAmt);
   var rateStr='';
   if(expAmtCur!==baseCur())rateStr=expAmtCur+' '+fmtN(val)+' → '+baseCur()+' '+fmtN(baseAmt)+'　｜　';
