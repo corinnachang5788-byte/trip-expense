@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
+:root{
+  --bg:#FAF7F2;
+  --bg2:#F0EBE0;
+  --bg3:#E5DDD0;
+  --txt:#2C2218;
+  --txt2:#6B5740;
+  --txt3:#9C8870;
+  --brd:rgba(160,130,90,0.18);
+  --brd2:rgba(160,130,90,0.32);
+  --blue-bg:#EDE5D8;
+  --blue-txt:#3A2810;
+  --blue-mid:#8A6E48;
+  --green-bg:#E0EDD8;
+  --green-txt:#2A4A18;
+  --red-bg:#F5E4E0;
+  --red-txt:#8B2A1A;
+  --amber-bg:#F5EDD8;
+  --amber-txt:#6A4E10;
+}
+.app{max-width:390px;margin:0 auto;background:var(--bg);border:0.5px solid var(--brd);border-radius:20px;overflow:hidden;}
+.page{display:none;}.page.active{display:block;}
+.top-bar{padding:14px 16px 12px;border-bottom:0.5px solid var(--brd);display:flex;align-items:center;gap:10px;}
+.top-bar h1{font-size:17px;font-weight:500;color:var(--txt);flex:1;}
+.top-sub{font-size:12px;color:var(--txt3);margin-top:1px;}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--txt2);font-size:20px;padding:4px;line-height:1;display:flex;align-items:center;border-radius:6px;}
+.icon-btn:hover{background:var(--bg2);}
+/* trip list */
+.trip-list-wrap{padding:14px 16px;}
+.trip-card{background:var(--bg);border:0.5px solid var(--brd);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+.trip-card-body{flex:1;min-width:0;cursor:pointer;}
+.trip-card.closed-trip{opacity:0.55;}
+.trip-card.active-trip{border:1.5px solid #8A6E48;}
+.closed-badge{background:var(--bg3);color:var(--txt3);font-size:10px;padding:2px 7px;border-radius:20px;margin-left:6px;}
+.trip-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;cursor:pointer;}
+.trip-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.trip-act-btn{background:none;border:0.5px solid var(--brd);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--txt2);white-space:nowrap;}
+.trip-act-btn:hover{background:var(--bg2);}
+.trip-act-btn.danger{border-color:#E24B4A;color:#A32D2D;}
+.trip-act-btn.danger:hover{background:var(--red-bg);}
+.trip-act-btn.close{border-color:#854F0B;color:#854F0B;}
+.trip-act-btn.close:hover{background:var(--amber-bg);}
+.trip-act-btn.reopen{border-color:var(--green-txt);color:var(--green-txt);}
+.trip-act-btn.reopen:hover{background:var(--green-bg);}
+.add-trip-btn{width:100%;background:var(--bg);border:0.5px dashed var(--brd2);border-radius:14px;padding:14px;font-size:14px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;}
+.add-trip-btn:hover{background:var(--bg2);}
+/* new trip form */
+.form-wrap{padding:14px 16px;}
+.form-lbl{font-size:12px;color:var(--txt2);margin-bottom:5px;font-weight:500;display:block;margin-top:12px;}
+.form-lbl:first-child{margin-top:0;}
+.txt-inp{width:100%;background:var(--bg2);border:0.5px solid var(--brd);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--txt);outline:none;}
+.txt-inp:focus{border-color:#C8B090;}
+.emoji-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px;}
+.emoji-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:8px 4px 6px;font-size:22px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;}
+.emoji-btn.sel{background:#EDE0C8;border-color:#C8B090;box-shadow:0 0 0 1.5px #C8B090;}
+.emoji-btn.sel::after{content:'✓';position:absolute;top:3px;right:5px;font-size:9px;font-weight:700;color:#8A6E48;line-height:1;}
+.emoji-tip{font-size:10px;color:var(--txt3);font-family:system-ui,sans-serif;line-height:1;}
+.emoji-btn.sel .emoji-tip{color:#8A6E48;}
+.emoji-btn:hover .emoji-tip{color:var(--txt2);}
+.emoji-btn:hover{background:var(--bg3);border-color:var(--brd2);}
+.currency-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px;}
+.cur-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;cursor:pointer;}
+.cur-btn.sel{background:#EDE0C8;border-color:#C8B090;}
+.cur-code{font-size:15px;font-weight:500;color:var(--txt);}
+.cur-name{font-size:11px;color:var(--txt3);}
+.cur-btn.sel .cur-code{color:#3A2810;}
+.cur-btn.sel .cur-name{color:#8A6E48;}
+/* home */
+.summary-bar{background:#E8DCC8;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
+.sum-item{text-align:center;}
+.sum-val{font-size:17px;font-weight:500;color:#3A2810;display:block;}
+.sum-lbl{font-size:11px;color:#8A6E48;}
+.sum-div{width:0.5px;background:#C8B090;align-self:stretch;}
+.sec-head{font-size:11px;font-weight:500;color:var(--txt3);padding:10px 16px 4px;letter-spacing:.04em;}
+.exp-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:0.5px solid var(--brd);cursor:pointer;}
+.exp-row:hover{background:var(--bg2);}
+.cat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+.exp-main{flex:1;min-width:0;}
+.exp-name{font-size:14px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.exp-meta{font-size:12px;color:var(--txt3);}
+.exp-right{text-align:right;flex-shrink:0;}
+.exp-amt{font-size:14px;font-weight:500;color:var(--txt);}
+.exp-who{font-size:11px;color:var(--txt3);}
+.fab{margin:12px 16px;background:#8A6E48;color:#FAF7F2;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;}
+.fab:hover{background:#6A5030;}
+.fab:disabled{background:var(--bg3);color:var(--txt3);cursor:not-allowed;}
+.nav-bar{display:flex;border-top:0.5px solid var(--brd);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 8px;gap:3px;font-size:10px;color:var(--txt3);cursor:pointer;border:none;background:none;}
+.nav-item.active{color:#8A6E48;}
+/* add expense */
+.cur-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.cur-pill{background:var(--bg2);border:0.5px solid var(--brd);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--txt2);cursor:pointer;white-space:nowrap;}
+.cur-pill.sel{background:#EDE0C8;border-color:#C8B090;color:#3A2810;font-weight:500;}
+.rate-box{background:var(--amber-bg);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--amber-txt);margin-bottom:8px;text-align:center;font-weight:500;}
+.amt-box{width:100%;background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:12px 14px;font-size:28px;font-weight:500;text-align:center;color:var(--txt);margin-bottom:4px;}
+.twd-rate{text-align:center;font-size:12px;color:var(--txt3);margin-bottom:10px;}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.num-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:12px;font-size:18px;font-weight:500;color:var(--txt);cursor:pointer;}
+.num-btn:hover{background:var(--bg);border-color:var(--brd2);}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.cat-btn{background:var(--bg2);border:0.5px solid var(--brd);border-radius:10px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--txt2);cursor:pointer;}
+.cat-btn.sel{background:#EDE0C8;border-color:#C8B090;color:#3A2810;}
+.mbr-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.mbr-pill{background:var(--bg2);border:0.5px solid var(--brd);border-radius:20px;padding:5px 12px;font-size:13px;color:var(--txt2);cursor:pointer;white-space:nowrap;}
+.mbr-pill.sel{background:#EDE0C8;border-color:#C8B090;color:#3A2810;}
+.tog-row{display:flex;border:0.5px solid var(--brd2);border-radius:8px;overflow:hidden;margin-bottom:10px;}
+.tog-btn{flex:1;padding:8px 4px;font-size:12px;border:none;background:transparent;color:var(--txt2);cursor:pointer;}
+.tog-btn.on{background:#8A6E48;color:#FAF7F2;font-weight:500;}
+.sp-preview{background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.sp-lbl{font-size:12px;color:var(--txt2);margin-bottom:6px;}
+.sp-mbrs{display:flex;gap:10px;flex-wrap:wrap;}
+.sp-mbr{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;}
+.save-btn{width:100%;background:#8A6E48;color:#FAF7F2;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;}
+.save-btn:hover{background:#6A5030;}
+/* settle */
+.settle-hdr{padding:12px 16px;border-bottom:0.5px solid var(--brd);}
+.bal-row{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.bal-chip{display:flex;align-items:center;gap:5px;background:var(--bg2);border-radius:20px;padding:4px 8px 4px 5px;cursor:pointer;border:0.5px solid transparent;}
+.bal-chip:hover{border-color:var(--brd2);}
+.net-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;}
+.net-pos{background:#D8EDD8;color:#2A4A18;}
+.net-neg{background:#F5DDD8;color:#8B2A1A;}
+.net-zero{background:#E5DDD0;color:#6B5740;}
+.srow{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:0.5px solid var(--brd);cursor:pointer;}
+.srow:hover{background:var(--bg2);}
+.srow-det{flex:1;min-width:0;}
+.srow-who{font-size:13px;color:var(--txt);}
+.srow-sub{font-size:11px;color:var(--txt3);}
+.arr-badge{background:#E0DCC8;border-radius:6px;padding:3px 8px;font-size:12px;color:#3A2810;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.share-btn{margin:12px 16px;width:calc(100% - 32px);background:var(--bg2);border:0.5px solid var(--brd2);border-radius:10px;padding:12px;font-size:13px;color:var(--txt);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+/* members */
+.mbr-pg{padding:14px 16px;}
+.mbr-card{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--brd);}
+.mbr-card:last-child{border-bottom:none;}
+.mbr-info{flex:1;}
+.mbr-name{font-size:14px;font-weight:500;color:var(--txt);}
+.mbr-stats{font-size:12px;color:var(--txt3);}
+.add-row{display:flex;gap:8px;margin-top:14px;}
+.add-row input{flex:1;}
+.add-btn{background:#8A6E48;color:#FAF7F2;border:none;border-radius:8px;padding:0 16px;font-size:14px;cursor:pointer;}
+/* detail pages */
+.det-hero{padding:20px 16px 16px;border-bottom:0.5px solid var(--brd);display:flex;gap:14px;align-items:center;}
+.det-section{padding:12px 16px;border-bottom:0.5px solid var(--brd);}
+.det-row{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:0.5px solid var(--brd);}
+.det-lbl{font-size:13px;color:var(--txt2);}
+.det-val{font-size:13px;font-weight:500;color:var(--txt);}
+.split-pr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--brd);}
+.split-pr:last-child{border-bottom:none;}
+.payer-tag{background:#EDE0C8;color:#3A2810;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;}
+.del-btn{margin:14px 16px;width:calc(100% - 32px);background:var(--bg);border:0.5px solid #E24B4A;color:#A32D2D;border-radius:10px;padding:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.pstat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px 16px;border-bottom:0.5px solid var(--brd);}
+.pstat{background:var(--bg2);border-radius:8px;padding:12px;}
+.pstat-lbl{font-size:11px;color:var(--txt3);margin-bottom:4px;}
+.pstat-val{font-size:16px;font-weight:500;color:var(--txt);}
+.pos{color:var(--green-txt);}.neg{color:var(--red-txt);}
+.chev{font-size:13px;color:var(--txt3);}
+.empty{padding:40px 16px;text-align:center;color:var(--txt3);font-size:14px;}
+/* analytics */
+.analytics-wrap{padding:14px 16px;}
+.chart-card{background:var(--bg);border:0.5px solid var(--brd);border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+.chart-title{font-size:13px;font-weight:500;color:var(--txt);margin-bottom:12px;}
+.donut-wrap{display:flex;align-items:center;gap:16px;}
+.donut-svg{flex-shrink:0;}
+.legend{flex:1;display:flex;flex-direction:column;gap:7px;}
+.legend-item{display:flex;align-items:center;gap:8px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.legend-lbl{font-size:12px;color:var(--txt2);flex:1;}
+.legend-val{font-size:12px;font-weight:500;color:var(--txt);}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-row:last-child{margin-bottom:0;}
+.bar-lbl{font-size:12px;color:var(--txt2);width:40px;text-align:right;flex-shrink:0;}
+.bar-track{flex:1;background:var(--bg2);border-radius:20px;height:10px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:20px;transition:width .4s;}
+.bar-val{font-size:12px;font-weight:500;color:var(--txt);width:56px;text-align:right;flex-shrink:0;}
+.stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--brd);}
+.stat-row:last-child{border-bottom:none;}
+.stat-lbl{font-size:13px;color:var(--txt2);}
+.stat-val{font-size:13px;font-weight:500;color:var(--txt);}
+/* album */
+.album-wrap{padding:14px 16px;}
+.album-upload-btn{width:100%;border:0.5px dashed var(--brd2);border-radius:14px;padding:18px;font-size:14px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;background:var(--bg);}
+.album-upload-btn:hover{background:var(--bg2);}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.photo-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;background:var(--bg2);}
+.photo-thumb-wrap{position:relative;}
+.photo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.photo-caption{font-size:11px;color:var(--txt3);text-align:center;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* lightbox */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;flex-direction:column;align-items:center;justify-content:center;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:10px;}
+.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:22px;cursor:pointer;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.lightbox-cap{color:#ccc;font-size:13px;margin-top:10px;max-width:300px;text-align:center;}
+/* expense photo */
+.photo-upload-row{display:flex;gap:8px;margin-bottom:12px;}
+.photo-upload-btn{flex:1;background:var(--bg2);border:0.5px solid var(--brd);border-radius:8px;padding:10px;font-size:13px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.photo-upload-btn:hover{background:var(--bg3);}
+.exp-photo-preview{position:relative;width:72px;height:72px;flex-shrink:0;}
+.exp-photo-preview img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:0.5px solid var(--brd);}
+.exp-photo-preview .photo-del{top:2px;right:2px;}
+.exp-photo-badge{position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;}
+/* receipt thumb in detail */
+.receipt-img{width:100%;border-radius:10px;margin-top:8px;cursor:pointer;object-fit:cover;max-height:220px;}
+@media (hover:none){.exp-del-btn{opacity:0.35 !important;}}
+.dropdown-item{display:flex;align-items:center;padding:10px 14px;cursor:pointer;border-bottom:0.5px solid var(--brd);}
+.dropdown-item:last-child{border-bottom:none;}
+.dropdown-item:hover{background:var(--bg2);}
+.dropdown-item:active{background:var(--bg3);}
+
+/* lock page */
+#page-lock{min-height:100vh;background:linear-gradient(160deg,#E6F1FB 0%,#fff 60%);}
+/* settings */
+</style>
+</head><body>
+<div class="app">
+
+<!-- 載入中遮罩 -->
+<div id="loading-overlay" style="position:fixed;inset:0;background:rgba(250,247,242,0.97);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;">
+  <div style="font-size:36px;">🏔</div>
+  <div style="font-size:15px;font-weight:500;color:var(--txt);">六塊肌山水相逢</div>
+  <div style="font-size:13px;color:var(--txt3);">連線雲端資料中…</div>
+  <div style="width:40px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:4px;">
+    <div style="width:40%;height:100%;background:var(--blue-mid);border-radius:2px;animation:slide 1.2s infinite ease-in-out;"></div>
+  </div>
+</div>
+<style>
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+
+/* lock page */
+#page-lock{min-height:100vh;background:linear-gradient(160deg,#E6F1FB 0%,#fff 60%);}
+/* settings */
+</style>
+
+<!-- ① 旅遊列表 -->
+<div class="page active" id="page-trips">
+  <div class="top-bar"><h1>六塊肌山水相逢</h1><span id="sync-indicator" style="font-size:11px;flex:1;text-align:right;padding-right:6px;"></span><button class="icon-btn" onclick="nav('page-global-stats')" title="全旅遊統計">📊</button><button class="icon-btn" onclick="nav('page-settings')" title="設定">⚙️</button></div>
+  <div class="trip-list-wrap">
+    <button class="add-trip-btn" onclick="nav('page-new-trip')">＋ 新增旅遊</button>
+    <div id="trip-list"></div>
+  </div>
+</div>
+
+<!-- ② 新增旅遊 -->
+<div class="page" id="page-new-trip">
+  <div class="top-bar">
+    <button class="icon-btn" id="nt-back-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
+    <h1 id="nt-page-title">新增旅遊</h1>
+  </div>
+  <div class="form-wrap">
+    <div class="form-lbl">旅遊名稱</div>
+    <div style="position:relative;">
+      <input class="txt-inp" type="text" id="nt-name" placeholder="選擇或輸入旅遊類型…" oninput="onTripNameInput()" onfocus="showDropdown()" autocomplete="off" style="padding-right:36px;">
+      <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--txt3);pointer-events:none;">▾</span>
+    </div>
+    <div id="trip-dropdown" style="display:none;background:var(--bg);border:0.5px solid var(--brd2);border-radius:10px;margin-top:4px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+      <div id="dropdown-list"></div>
+    </div>
+    <div class="form-lbl">旅遊地點</div>
+    <input class="txt-inp" type="text" id="nt-dest" placeholder="e.g. 澳洲・雪梨、大堡礁">
+    <div class="form-lbl">出發日期</div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <input class="txt-inp" type="date" id="nt-date-from" style="flex:1;margin-bottom:0;">
+      <span style="font-size:13px;color:var(--txt3);flex-shrink:0;">→</span>
+      <input class="txt-inp" type="date" id="nt-date-to" style="flex:1;margin-bottom:0;">
+    </div>
+    <div class="form-lbl" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;">
+      <span>選擇圖示 <span style="font-size:11px;color:var(--txt3);font-weight:400">（可多選）</span></span>
+      <span id="emoji-ai-hint" style="font-size:11px;color:var(--blue-mid);display:none">✦ 依名稱推薦</span>
+    </div>
+    <div id="emoji-sel-preview" style="display:none;background:var(--bg2);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:var(--txt3);">已選：</span>
+      <span id="emoji-sel-tags" style="font-size:20px;letter-spacing:2px;"></span>
+      <button onclick="clearEmojiSel()" style="margin-left:auto;font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer;">清除</button>
+    </div>
+    <div class="emoji-grid" id="emoji-grid">
+      <button class="emoji-btn sel" data-e="✈" onclick="sEmoji(this)" title="飛機・出發旅行">✈<span class="emoji-tip">飛機</span></button>
+      <button class="emoji-btn" data-e="🗺" onclick="sEmoji(this)" title="地圖・探索">🗺<span class="emoji-tip">地圖</span></button>
+      <button class="emoji-btn" data-e="🌏" onclick="sEmoji(this)" title="地球・世界旅遊">🌏<span class="emoji-tip">世界</span></button>
+      <button class="emoji-btn" data-e="🏖" onclick="sEmoji(this)" title="沙灘・海島度假">🏖<span class="emoji-tip">海灘</span></button>
+      <button class="emoji-btn" data-e="🏔" onclick="sEmoji(this)" title="高山・登山健行">🏔<span class="emoji-tip">高山</span></button>
+      <button class="emoji-btn" data-e="🗼" onclick="sEmoji(this)" title="鐵塔・城市觀光">🗼<span class="emoji-tip">鐵塔</span></button>
+      <button class="emoji-btn" data-e="🎡" onclick="sEmoji(this)" title="摩天輪・遊樂園">🎡<span class="emoji-tip">遊樂園</span></button>
+      <button class="emoji-btn" data-e="🚢" onclick="sEmoji(this)" title="郵輪・海上旅遊">🚢<span class="emoji-tip">郵輪</span></button>
+      <button class="emoji-btn" data-e="🍜" onclick="sEmoji(this)" title="美食・吃貨之旅">🍜<span class="emoji-tip">美食</span></button>
+      <button class="emoji-btn" data-e="🏝" onclick="sEmoji(this)" title="小島・熱帶度假">🏝<span class="emoji-tip">小島</span></button>
+    </div>
+    <div class="form-lbl">基準幣別（結算用）</div>
+    <div class="currency-grid" id="base-cur-grid">
+      <button class="cur-btn sel" data-cur="AUD" onclick="sBaseCur(this)"><span class="cur-code">AUD</span><span class="cur-name">澳幣</span></button>
+      <button class="cur-btn" data-cur="JPY" onclick="sBaseCur(this)"><span class="cur-code">JPY</span><span class="cur-name">日圓</span></button>
+      <button class="cur-btn" data-cur="USD" onclick="sBaseCur(this)"><span class="cur-code">USD</span><span class="cur-name">美元</span></button>
+      <button class="cur-btn" data-cur="EUR" onclick="sBaseCur(this)"><span class="cur-code">EUR</span><span class="cur-name">歐元</span></button>
+      <button class="cur-btn" data-cur="GBP" onclick="sBaseCur(this)"><span class="cur-code">GBP</span><span class="cur-name">英鎊</span></button>
+      <button class="cur-btn" data-cur="KRW" onclick="sBaseCur(this)"><span class="cur-code">KRW</span><span class="cur-name">韓元</span></button>
+      <button class="cur-btn" data-cur="TWD" onclick="sBaseCur(this)"><span class="cur-code">TWD</span><span class="cur-name">台幣</span></button>
+      <button class="cur-btn" data-cur="HKD" onclick="sBaseCur(this)"><span class="cur-code">HKD</span><span class="cur-name">港幣</span></button>
+    </div>
+    <div class="form-lbl">成員（用逗號分隔）</div>
+    <input class="txt-inp" type="text" id="nt-members" placeholder="e.g. 小明, 阿花, 阿偉" style="margin-bottom:16px;">
+    <button class="save-btn" id="nt-save-btn" onclick="saveTrip()">建立旅遊</button>
+  </div>
+</div>
+
+<!-- ③ 首頁 花費列表 -->
+<div class="page" id="page-home">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-trips')" title="所有旅遊">⊞</button>
+    <div style="flex:1;cursor:pointer;" onclick="openEditTrip()" title="點擊修改旅遊資訊">
+      <h1 id="trip-title">旅遊名稱</h1>
+      <div class="top-sub" id="trip-meta"></div>
+    </div>
+    <button class="icon-btn" id="edit-trip-btn" onclick="openEditTrip()" title="修改旅遊資訊" style="font-size:16px;">✏️</button>
+    <button class="icon-btn" onclick="nav('page-members')" aria-label="成員">👥</button>
+  </div>
+  <div class="summary-bar">
+    <div class="sum-item"><span class="sum-val" id="s-tot">0</span><span class="sum-lbl">總花費</span></div>
+    <div class="sum-div"></div>
+    <div class="sum-item"><span class="sum-val" id="s-pp">0</span><span class="sum-lbl">每人均攤</span></div>
+    <div class="sum-div"></div>
+    <div class="sum-item"><span class="sum-val" id="s-cnt">0 筆</span><span class="sum-lbl">記帳筆數</span></div>
+  </div>
+  <div id="exp-list"></div>
+  <button class="fab" id="add-fab" onclick="nav('page-add')">＋ 新增花費</button>
+  <div class="nav-bar">
+    <button class="nav-item active" onclick="nav('page-home')">📋 列表</button>
+    <button class="nav-item" onclick="nav('page-analytics')">📊 分析</button>
+    <button class="nav-item" onclick="nav('page-album')">📷 相簿</button>
+    <button class="nav-item" onclick="nav('page-settle')">⇄ 結算</button>
+    <button class="nav-item" onclick="nav('page-members')">👥 成員</button>
+  </div>
+</div>
+
+<!-- ④ 費用分析 -->
+<div class="page" id="page-analytics">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
+    <h1>費用分析</h1>
+  </div>
+  <div class="analytics-wrap" id="analytics-body"></div>
+  <div class="nav-bar">
+    <button class="nav-item" onclick="nav('page-home')">📋 列表</button>
+    <button class="nav-item active" onclick="nav('page-analytics')">📊 分析</button>
+    <button class="nav-item" onclick="nav('page-album')">📷 相簿</button>
+    <button class="nav-item" onclick="nav('page-settle')">⇄ 結算</button>
+    <button class="nav-item" onclick="nav('page-members')">👥 成員</button>
+  </div>
+</div>
+
+<!-- ⑤ 花費明細 -->
+<div class="page" id="page-exp-det">
+  <div class="top-bar">
+    <button class="icon-btn" id="exp-back" aria-label="返回">←</button>
+    <h1>花費明細</h1>
+  </div>
+  <div id="exp-det-body"></div>
+</div>
+
+<!-- ⑥ 個人明細 -->
+<div class="page" id="page-person-det">
+  <div class="top-bar">
+    <button class="icon-btn" id="person-back" aria-label="返回">←</button>
+    <h1 id="person-det-title">個人明細</h1>
+  </div>
+  <div id="person-det-body"></div>
+</div>
+
+<!-- ⑦ 轉帳明細 -->
+<div class="page" id="page-txn-det">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-settle')" aria-label="返回">←</button>
+    <h1>轉帳明細</h1>
+  </div>
+  <div id="txn-det-body"></div>
+</div>
+
+<!-- ⑧ 新增花費 -->
+<div class="page" id="page-add">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
+    <h1>新增花費</h1>
+  </div>
+  <div class="form-wrap">
+    <div id="no-member-warn" style="display:none;background:#FFF4E0;border:0.5px solid #F4B84A;border-radius:10px;padding:11px 14px;margin-bottom:14px;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">⚠️</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#7A4600;">尚未設定旅遊成員</div>
+          <div style="font-size:12px;color:#9A5D00;margin-top:2px;">分攤功能需要成員資料，建議先新增成員再記帳</div>
+        </div>
+      </div>
+      <button onclick="nav('page-members')" style="background:#F4B84A;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#fff;cursor:pointer;width:100%;">👥 前往新增成員</button>
+    </div>
+    <div class="form-lbl">選擇幣別</div>
+    <div class="cur-selector" id="cur-selector"></div>
+    <div class="rate-box" id="rate-box"></div>
+    <div class="amt-box" id="amt-box">0.00</div>
+    <div class="twd-rate" id="twd-rate"></div>
+    <div class="numpad">
+      <button class="num-btn" onclick="np('1')">1</button><button class="num-btn" onclick="np('2')">2</button><button class="num-btn" onclick="np('3')">3</button>
+      <button class="num-btn" onclick="np('4')">4</button><button class="num-btn" onclick="np('5')">5</button><button class="num-btn" onclick="np('6')">6</button>
+      <button class="num-btn" onclick="np('7')">7</button><button class="num-btn" onclick="np('8')">8</button><button class="num-btn" onclick="np('9')">9</button>
+      <button class="num-btn" onclick="np('.')">.</button><button class="num-btn" onclick="np('0')">0</button>
+      <button class="num-btn" style="color:#999" onclick="np('del')">⌫</button>
+    </div>
+    <div class="form-lbl">說明</div>
+    <input class="txt-inp" type="text" id="exp-desc" placeholder="e.g. 晚餐、巴士票..." style="margin-bottom:12px;">
+    <div class="form-lbl">花費日期</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+      <input class="txt-inp" type="date" id="exp-date-from" style="flex:1;margin-bottom:0;font-size:13px;">
+      <span style="font-size:13px;color:var(--txt3);flex-shrink:0;">→</span>
+      <input class="txt-inp" type="date" id="exp-date-to" style="flex:1;margin-bottom:0;font-size:13px;">
+    </div>
+    <div class="form-lbl">類別</div>
+    <div class="cat-grid">
+      <button class="cat-btn sel" data-cat="餐飲" onclick="sCat(this)">🍽 餐飲</button>
+      <button class="cat-btn" data-cat="交通" onclick="sCat(this)">🚌 交通</button>
+      <button class="cat-btn" data-cat="住宿" onclick="sCat(this)">🛏 住宿</button>
+      <button class="cat-btn" data-cat="景點" onclick="sCat(this)">🎟 景點</button>
+      <button class="cat-btn" data-cat="購物" onclick="sCat(this)">🛍 購物</button>
+      <button class="cat-btn" data-cat="飲料" onclick="sCat(this)">☕ 飲料</button>
+      <button class="cat-btn" data-cat="醫療" onclick="sCat(this)">🏥 醫療</button>
+      <button class="cat-btn" data-cat="其他" onclick="sCat(this)">⋯ 其他</button>
+    </div>
+    <div class="form-lbl">付款人</div>
+    <div class="mbr-wrap" id="payer-wrap"></div>
+    <div class="form-lbl">分攤方式</div>
+    <div class="tog-row">
+      <button class="tog-btn on" onclick="sSplit('all',this)">全體平攤</button>
+      <button class="tog-btn" onclick="sSplit('pick',this)">指定成員</button>
+    </div>
+    <div id="pick-wrap" style="display:none;margin-bottom:10px">
+      <div class="mbr-wrap" id="pick-mbr-wrap"></div>
+    </div>
+    <div class="sp-preview"><div class="sp-lbl" id="sp-lbl">每人分攤 0.00</div><div class="sp-mbrs" id="sp-mbrs"></div></div>
+    <div class="form-lbl">收據 / 相片（選填）</div>
+    <div class="photo-upload-row">
+      <button class="photo-upload-btn" onclick="document.getElementById('exp-cam-inp').click()">📷 直接拍照</button>
+      <button class="photo-upload-btn" onclick="document.getElementById('exp-file-inp').click()">🖼 從相簿選取</button>
+    </div>
+    <input type="file" id="exp-cam-inp" accept="image/*" capture="environment" style="display:none" onchange="expPhotoChanged(this)">
+    <input type="file" id="exp-file-inp" accept="image/*" style="display:none" onchange="expPhotoChanged(this)">
+    <div id="exp-photo-preview-wrap" style="display:none;margin-bottom:12px;display:none">
+      <div class="exp-photo-preview">
+        <img id="exp-photo-thumb" src="" alt="收據預覽">
+        <button class="photo-del" onclick="clearExpPhoto()">✕</button>
+        <span class="exp-photo-badge">收據</span>
+      </div>
+    </div>
+    <button class="save-btn" id="add-save-btn" onclick="saveExp()">儲存花費</button>
+  </div>
+</div>
+
+<!-- ⑨ 結算 -->
+<div class="page" id="page-settle">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
+    <h1>分攤結算</h1>
+  </div>
+  <!-- 三格摘要 -->
+  <div id="settle-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--brd);border-bottom:0.5px solid var(--brd);"></div>
+  <!-- 各人淨餘額 -->
+  <div class="settle-hdr">
+    <div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px;letter-spacing:.04em;">各人淨餘額　<span style="font-size:10px;color:var(--blue-mid);background:var(--blue-bg);padding:1px 7px;border-radius:6px;cursor:pointer;" onclick="">👆 點名字看個人明細</span></div>
+    <div class="bal-row" id="bal-row"></div>
+  </div>
+  <!-- 轉帳列表 -->
+  <div class="sec-head" id="settle-head">需要轉帳</div>
+  <div id="settle-list"></div>
+  <button class="share-btn" onclick="copySettle()">📋 複製結算明細</button>
+  <div class="nav-bar">
+    <button class="nav-item" onclick="nav('page-home')">📋 列表</button>
+    <button class="nav-item" onclick="nav('page-analytics')">📊 分析</button>
+    <button class="nav-item" onclick="nav('page-album')">📷 相簿</button>
+    <button class="nav-item active" onclick="nav('page-settle')">⇄ 結算</button>
+    <button class="nav-item" onclick="nav('page-members')">👥 成員</button>
+  </div>
+</div>
+
+<!-- ⑩ 成員 -->
+<div class="page" id="page-members">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
+    <h1>成員管理</h1>
+  </div>
+  <div class="mbr-pg">
+    <div id="mbr-list"></div>
+    <div class="add-row">
+      <input class="txt-inp" type="text" id="new-mbr" placeholder="輸入新成員名稱" style="margin:0" onkeydown="if(event.key==='Enter')addMbr()">
+      <button class="add-btn" onclick="addMbr()">加入</button>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="nav-item" onclick="nav('page-home')">📋 列表</button>
+    <button class="nav-item" onclick="nav('page-analytics')">📊 分析</button>
+    <button class="nav-item" onclick="nav('page-album')">📷 相簿</button>
+    <button class="nav-item" onclick="nav('page-settle')">⇄ 結算</button>
+    <button class="nav-item active" onclick="nav('page-members')">👥 成員</button>
+  </div>
+</div>
+
+<!-- ⑪ 相片簿 -->
+<div class="page" id="page-album">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-home')" aria-label="返回">←</button>
+    <div style="flex:1"><h1 id="album-title">旅遊相片簿</h1><div class="top-sub" id="album-sub"></div></div>
+  </div>
+  <div class="album-wrap">
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button class="album-upload-btn" style="flex:1;margin-bottom:0;" onclick="document.getElementById('album-cam-inp').click()">
+        📷 直接拍照
+      </button>
+      <button class="album-upload-btn" style="flex:1;margin-bottom:0;" onclick="document.getElementById('album-file-inp').click()">
+        🖼 從相簿上傳
+      </button>
+    </div>
+    <!-- 拍照：有 capture，強制開相機 -->
+    <input type="file" id="album-cam-inp" accept="image/*" capture="environment" style="display:none" onchange="albumAddPhotos(this)">
+    <!-- 選取：無 capture，讓手機選擇相簿或相機 -->
+    <input type="file" id="album-file-inp" accept="image/*" multiple style="display:none" onchange="albumAddPhotos(this)">
+    <div class="photo-grid" id="photo-grid"></div>
+    <div id="album-empty" class="empty" style="display:none">還沒有相片，點上方按鈕上傳</div>
+  </div>
+  <div class="nav-bar">
+    <button class="nav-item" onclick="nav('page-home')">📋 列表</button>
+    <button class="nav-item" onclick="nav('page-analytics')">📊 分析</button>
+    <button class="nav-item active" onclick="nav('page-album')">📷 相簿</button>
+    <button class="nav-item" onclick="nav('page-settle')">⇄ 結算</button>
+    <button class="nav-item" onclick="nav('page-members')">👥 成員</button>
+  </div>
+</div>
+
+<!-- lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="">
+  <div class="lightbox-cap" id="lb-cap"></div>
+  <button id="lb-download-btn" onclick="event.stopPropagation();downloadPhotoByUrl(document.getElementById('lb-img').src,document.getElementById('lb-cap').textContent)" style="margin-top:12px;background:rgba(255,255,255,0.18);color:#fff;border:0.5px solid rgba(255,255,255,0.4);border-radius:8px;padding:8px 20px;font-size:13px;cursor:pointer;">⬇ 下載相片</button>
+</div>
+
+
+<!-- 🔐 密碼頁 -->
+<div class="page active" id="page-lock">
+  <div style="min-height:100vh;display:flex;flex-direction:column;background:#FAF7F2;">
+
+    <!-- 山水風景畫 -->
+    <div style="flex:1;position:relative;overflow:hidden;">
+      <svg width="100%" viewBox="0 0 390 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style="display:block;width:100%;height:100%;">
+
+        <!-- 天空漸層 -->
+        <rect x="0" y="0" width="390" height="480" fill="#FAF7F2"/>
+        <!-- 晨霧天色 -->
+        <ellipse cx="195" cy="60" rx="260" ry="120" fill="#F0E8D0" opacity="0.6"/>
+        <ellipse cx="100" cy="80" rx="160" ry="80" fill="#E8D8B8" opacity="0.35"/>
+        <ellipse cx="310" cy="70" rx="140" ry="70" fill="#EEE0C0" opacity="0.3"/>
+
+        <!-- 太陽 / 晨光 -->
+        <circle cx="195" cy="108" r="36" fill="#E8C870" opacity="0.55"/>
+        <circle cx="195" cy="108" r="24" fill="#EAD080" opacity="0.7"/>
+        <circle cx="195" cy="108" r="14" fill="#F0DC98" opacity="0.9"/>
+
+        <!-- 光暈射線 -->
+        <g opacity="0.18" stroke="#D4A840" stroke-width="1">
+          <line x1="195" y1="108" x2="120" y2="30"/>
+          <line x1="195" y1="108" x2="60" y2="80"/>
+          <line x1="195" y1="108" x2="270" y2="30"/>
+          <line x1="195" y1="108" x2="330" y2="78"/>
+          <line x1="195" y1="108" x2="195" y2="20"/>
+          <line x1="195" y1="108" x2="148" y2="22"/>
+          <line x1="195" y1="108" x2="242" y2="22"/>
+        </g>
+
+        <!-- 遠山（最後面）淡霧色 -->
+        <path d="M-10 280 Q40 200 90 220 Q130 190 160 210 Q190 175 220 205 Q255 185 280 200 Q320 170 360 195 Q380 200 400 220 L400 320 L-10 320 Z" fill="#C8B898" opacity="0.35"/>
+
+        <!-- 中遠山（霧藍山脈）-->
+        <path d="M-10 310 Q30 240 70 258 Q100 228 135 250 Q165 220 195 242 Q230 210 265 238 Q300 218 335 240 Q365 228 400 248 L400 360 L-10 360 Z" fill="#A89878" opacity="0.45"/>
+
+        <!-- 主山（中景）溫暖赭石 -->
+        <path d="M-10 360 Q20 290 55 305 Q80 270 115 292 Q145 258 175 280 Q200 250 225 272 Q260 245 295 268 Q330 250 365 275 Q385 280 400 295 L400 400 L-10 400 Z" fill="#8A7050" opacity="0.7"/>
+
+        <!-- 主山高光 -->
+        <path d="M175 280 Q192 258 210 272 Q195 268 178 282 Z" fill="#A08860" opacity="0.5"/>
+        <path d="M80 270 Q95 255 112 265 Q96 263 82 273 Z" fill="#907858" opacity="0.4"/>
+        <path d="M270 245 Q282 232 298 242 Q283 240 271 248 Z" fill="#907858" opacity="0.4"/>
+
+        <!-- 山間雲霧帶 -->
+        <ellipse cx="80" cy="295" rx="90" ry="18" fill="#FAF7F2" opacity="0.55"/>
+        <ellipse cx="260" cy="275" rx="80" ry="14" fill="#FAF7F2" opacity="0.45"/>
+        <ellipse cx="340" cy="310" rx="70" ry="12" fill="#FAF7F2" opacity="0.4"/>
+
+        <!-- 中景樹林 -->
+        <!-- 左側松樹群 -->
+        <g fill="#5A4830" opacity="0.8">
+          <path d="M32 380 L42 340 L52 380 Z"/>
+          <path d="M38 375 L50 330 L62 375 Z"/>
+          <path d="M18 385 L27 350 L36 385 Z"/>
+        </g>
+        <!-- 右側松樹群 -->
+        <g fill="#5A4830" opacity="0.8">
+          <path d="M330 382 L340 345 L350 382 Z"/>
+          <path d="M345 378 L357 338 L369 378 Z"/>
+          <path d="M358 385 L366 352 L374 385 Z"/>
+        </g>
+
+        <!-- 水面（前景）倒影 -->
+        <rect x="0" y="398" width="390" height="82" fill="#C8A870" opacity="0.35"/>
+        <rect x="0" y="398" width="390" height="3" fill="#A88858" opacity="0.5"/>
+
+        <!-- 水波紋 -->
+        <g stroke="#D4B880" stroke-width="0.8" fill="none" opacity="0.5">
+          <path d="M30 415 Q80 410 130 415 Q180 420 230 415 Q280 410 340 415"/>
+          <path d="M10 428 Q60 423 110 428 Q160 433 210 428 Q270 422 350 428"/>
+          <path d="M50 442 Q100 437 150 442 Q200 447 260 442 Q310 437 380 442"/>
+          <path d="M20 456 Q80 451 140 456 Q200 461 260 456 Q320 451 390 456"/>
+        </g>
+
+        <!-- 水中山影倒影 -->
+        <path d="M60 398 Q80 420 100 445 Q115 440 130 445 Q150 420 175 398 Z" fill="#8A7050" opacity="0.15"/>
+        <path d="M210 398 Q235 425 255 448 Q275 440 295 398 Z" fill="#8A7050" opacity="0.15"/>
+
+        <!-- 前景岸石 -->
+        <ellipse cx="55" cy="402" rx="28" ry="8" fill="#705840" opacity="0.6"/>
+        <ellipse cx="325" cy="404" rx="24" ry="7" fill="#705840" opacity="0.55"/>
+        <ellipse cx="185" cy="400" rx="18" ry="5" fill="#705840" opacity="0.45"/>
+
+        <!-- 蘆葦（前景左）-->
+        <g stroke="#8A7050" stroke-width="1.5" opacity="0.7">
+          <line x1="22" y1="415" x2="20" y2="385"/>
+          <line x1="30" y1="418" x2="29" y2="382"/>
+          <line x1="38" y1="414" x2="37" y2="388"/>
+          <ellipse cx="20" cy="382" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="29" cy="379" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="37" cy="384" rx="2" ry="6" fill="#A08860" opacity="0.7"/>
+        </g>
+
+        <!-- 蘆葦（前景右）-->
+        <g stroke="#8A7050" stroke-width="1.5" opacity="0.7">
+          <line x1="355" y1="413" x2="354" y2="383"/>
+          <line x1="365" y1="416" x2="364" y2="386"/>
+          <line x1="375" y1="412" x2="374" y2="388"/>
+          <ellipse cx="354" cy="380" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="364" cy="383" rx="3" ry="7" fill="#A08860" opacity="0.8"/>
+          <ellipse cx="374" cy="385" rx="2" ry="6" fill="#A08860" opacity="0.7"/>
+        </g>
+
+        <!-- 飛鳥（遠景）-->
+        <g stroke="#9A7A50" stroke-width="1.2" fill="none" opacity="0.55">
+          <path d="M130 150 Q136 145 142 150"/>
+          <path d="M155 138 Q161 133 167 138"/>
+          <path d="M240 145 Q246 140 252 145"/>
+          <path d="M268 155 Q273 150 278 155"/>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- 登入卡片 -->
+    <div style="background:#FAF7F2;padding:24px 28px 36px;border-top:1px solid #C8B090;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:19px;font-weight:600;color:#3A2810;letter-spacing:0.5px;">六塊肌山水相逢</div>
+        <div style="font-size:12px;color:#9C8870;margin-top:3px;">旅遊記帳平台・請輸入群組密碼</div>
+      </div>
+      <div style="position:relative;margin-bottom:10px;">
+        <input id="lock-inp" type="password" placeholder="輸入密碼…"
+          style="width:100%;background:#F0EBE0;border:1px solid #C8B090;border-radius:10px;padding:12px 44px 12px 16px;font-size:16px;color:#2C2218;outline:none;text-align:center;box-sizing:border-box;"
+          onkeydown="if(event.key==='Enter')doUnlock()">
+        <button onclick="toggleLockVis()" id="lock-eye"
+          style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#9A8060;">👁</button>
+      </div>
+      <div id="lock-err" style="display:none;font-size:12px;color:#9B3A2A;text-align:center;margin-bottom:8px;">密碼錯誤，請再試一次</div>
+      <button onclick="doUnlock()"
+        style="width:100%;background:#8A6E48;color:#FAF7F2;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;letter-spacing:0.5px;">進入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ⚙ 設定頁（密碼修改）-->
+<div class="page" id="page-settings">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
+    <h1>設定</h1>
+  </div>
+  <div style="padding:16px;">
+    <div style="background:var(--bg2);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:500;color:var(--txt);margin-bottom:12px;">🔐 修改群組密碼</div>
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">目前密碼</div>
+      <input id="pw-old" type="password" placeholder="輸入目前密碼" class="txt-inp" style="margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">新密碼</div>
+      <input id="pw-new" type="password" placeholder="輸入新密碼" class="txt-inp" style="margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:6px;">確認新密碼</div>
+      <input id="pw-confirm" type="password" placeholder="再次輸入新密碼" class="txt-inp" style="margin-bottom:12px;">
+      <div id="pw-msg" style="display:none;font-size:12px;text-align:center;margin-bottom:10px;"></div>
+      <button onclick="changePassword()" style="width:100%;background:var(--blue-mid);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;">確認修改密碼</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt3);text-align:center;padding:8px;">密碼儲存在雲端，所有成員共用同一組密碼</div>
+  </div>
+</div>
+
+
+<!-- 🌍 全旅遊統計頁 -->
+<div class="page" id="page-global-stats">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="nav('page-trips')" aria-label="返回">←</button>
+    <h1>全旅遊統計</h1>
+  </div>
+  <div class="analytics-wrap" id="global-stats-body"></div>
+</div>
+
+</div><!-- .app -->
+<script>
+/* ══ Data ══ */
+var RATES={TWD:1,AUD:20.8,JPY:0.21,USD:32.5,EUR:35.2,GBP:41.0,KRW:0.024,HKD:4.15,SGD:24.0,THB:0.92};
+var CUR_NAMES={TWD:'台幣',AUD:'澳幣',JPY:'日圓',USD:'美元',EUR:'歐元',GBP:'英鎊',KRW:'韓元',HKD:'港幣',SGD:'新幣',THB:'泰銖'};
+var AV=[
+  {bg:'#E6F1FB',c:'#0C447C'},{bg:'#EAF3DE',c:'#27500A'},
+  {bg:'#FAEEDA',c:'#633806'},{bg:'#EEEDFE',c:'#3C3489'},
+  {bg:'#FAECE7',c:'#712B13'},{bg:'#FBEAF0',c:'#72243E'},
+  {bg:'#E1F5EE',c:'#085041'},{bg:'#FCEBEB',c:'#791F1F'}
+];
+var CC={
+  '餐飲':{bg:'#EAF3DE',c:'#3B6D11',e:'🍽',hex:'#3B6D11'},
+  '交通':{bg:'#E6F1FB',c:'#185FA5',e:'🚌',hex:'#185FA5'},
+  '住宿':{bg:'#EEEDFE',c:'#534AB7',e:'🛏',hex:'#534AB7'},
+  '景點':{bg:'#FAEEDA',c:'#854F0B',e:'🎟',hex:'#854F0B'},
+  '購物':{bg:'#FBEAF0',c:'#993556',e:'🛍',hex:'#993556'},
+  '飲料':{bg:'#E1F5EE',c:'#0F6E56',e:'☕',hex:'#0F6E56'},
+  '醫療':{bg:'#FCEBEB',c:'#A32D2D',e:'🏥',hex:'#A32D2D'},
+  '其他':{bg:'#F1EFE8',c:'#5F5E5A',e:'⋯',hex:'#5F5E5A'}
+};
+
+/* ══ Firebase 初始化 ══ */
+var FB_CONFIG={
+  apiKey:"AIzaSyAu0O5rgfTEh6d-mNH1yD_ZgP9v_I7bIeE",
+  authDomain:"trip-expense-b359f.firebaseapp.com",
+  databaseURL:"https://trip-expense-b359f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"trip-expense-b359f",
+  storageBucket:"trip-expense-b359f.firebasestorage.app",
+  messagingSenderId:"183858296568",
+  appId:"1:183858296568:web:1f1816f4e088353f332d0d"
+};
+firebase.initializeApp(FB_CONFIG);
+var db=firebase.database();
+var tripsRef=db.ref('trips');
+
+/* ══ Local state（由 Firebase 同步填入）══ */
+var trips=[];
+var nextTripId=1;
+var curTripId=null;
+var amtStr='',catSel='餐飲',payerSel='',splitMode='all',pickedM=[],expAmtCur='AUD';
+var expBack='page-home',personBack='page-settle';
+var selEmojiArr=[],newTripBaseCur='AUD';
+var editingTripId=null; // null=new, id=editing
+
+function openEditTrip(){
+  var t=trip();if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先「取消封存」才能修改資訊。');return;}
+  editingTripId=t.id;
+  /* Switch page-new-trip to edit mode */
+  document.getElementById('nt-page-title').textContent='修改旅遊資訊';
+  document.getElementById('nt-save-btn').textContent='儲存修改';
+  document.getElementById('nt-back-btn').onclick=function(){nav('page-home');};
+  /* Fill form with existing trip data */
+  document.getElementById('nt-name').value=t.name||'';
+  document.getElementById('nt-dest').value=t.dest||'';
+  document.getElementById('nt-date-from').value=t.dateFrom||'';
+  document.getElementById('nt-date-to').value=t.dateTo||'';
+  document.getElementById('nt-members').value=(t.members||[]).join('，');
+  newTripBaseCur=t.baseCur||'AUD';
+  /* Emoji */
+  selEmojiArr=t.emoji?Array.from(t.emoji):[];
+  /* Reset emoji grid to defaults and mark sel */
+  resetEmojiGrid();
+  /* Base currency buttons */
+  document.querySelectorAll('#base-cur-grid .cur-btn').forEach(function(b){b.classList.toggle('sel',b.dataset.cur===newTripBaseCur);});
+  document.getElementById('trip-dropdown').style.display='none';
+  document.getElementById('emoji-ai-hint').style.display='none';
+  updateEmojiPreview();
+  /* Navigate */
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-new-trip').classList.add('active');
+}
+var expPhotoDataUrl=null;
+var editingExpId=null; // null = new, number = editing existing
+var editAmtFresh=false; // true when editing: clear amount on first digit press
+var _fbReady=false; // true after first Firebase load
+
+/* ══ 同步狀態提示 ══ */
+function showSyncing(){
+  var el=document.getElementById('sync-indicator');
+  if(el){el.textContent='⟳ 同步中…';el.style.color='var(--txt3)';}
+}
+function showSynced(){
+  var el=document.getElementById('sync-indicator');
+  if(el){el.textContent='✓ 已同步';el.style.color='var(--green-txt)';
+    setTimeout(function(){if(el)el.textContent='';},2000);}
+}
+function showSyncErr(){
+  var el=document.getElementById('sync-indicator');
+  if(el){el.textContent='⚠ 同步失敗';el.style.color='var(--red-txt)';}
+}
+
+/* ══ Firebase 寫入 ══ */
+function fbSaveTrips(){
+  showSyncing();
+  var data={};
+  trips.forEach(function(t){
+    var tc=JSON.parse(JSON.stringify(t));
+    console.log('[save] trip'+t.id+' expenses count=',tc.expenses?tc.expenses.length:'null');
+    if(tc.expenses){
+      var em={};tc.expenses.forEach(function(e,i){em['e'+e.id]=e;});tc.expenses=em;
+    }
+    if(tc.photos){
+      var pm={};tc.photos.forEach(function(p,i){pm['p'+i]=p;});tc.photos=pm;
+    }
+    if(tc.transfers){
+      var trm={};tc.transfers.forEach(function(r,i){trm['t'+i]=r;});tc.transfers=trm;
+    }
+    if(tc.members){
+      var mm={};tc.members.forEach(function(m,i){mm['m'+i]=m;});tc.members=mm;
+    }
+    data['trip'+t.id]=tc;
+  });
+  data['_nextTripId']=nextTripId;
+  console.log('[save] calling tripsRef.set with',Object.keys(data).length,'keys');
+  tripsRef.set(data).then(function(){
+    showSynced();
+    console.log('[save] set SUCCESS');
+  }).catch(function(e){
+    showSyncErr();
+    console.error('[save] set FAILED',e);
+  });
+}
+
+/* ══ Firebase 讀取並轉回陣列 ══ */
+function fbParse(raw){
+  if(!raw)return;
+  var parsed=[];
+  Object.keys(raw).forEach(function(k){
+    if(k==='_nextTripId'){nextTripId=raw[k];return;}
+    var t=raw[k];
+    if(t.members&&!Array.isArray(t.members)){
+      var marr=[];Object.keys(t.members).sort().forEach(function(mk){marr.push(t.members[mk]);});t.members=marr;
+    }
+    if(t.expenses&&!Array.isArray(t.expenses)){
+      var earr=[];Object.keys(t.expenses).forEach(function(ek){earr.push(t.expenses[ek]);});
+      earr.sort(function(a,b){return b.id-a.id;});t.expenses=earr;
+    } else if(!t.expenses){t.expenses=[];}
+    if(t.photos&&!Array.isArray(t.photos)){
+      var parr=[];Object.keys(t.photos).sort().forEach(function(pk){parr.push(t.photos[pk]);});t.photos=parr;
+    } else if(!t.photos){t.photos=[];}
+    if(t.transfers&&!Array.isArray(t.transfers)){
+      var tarr=[];Object.keys(t.transfers).forEach(function(tk){tarr.push(t.transfers[tk]);});t.transfers=tarr;
+    } else if(!t.transfers){t.transfers=[];}
+    console.log('[parse] trip'+t.id+' expenses=',t.expenses.length,'transfers=',t.transfers.length);
+    parsed.push(t);
+  });
+  parsed.sort(function(a,b){return a.id-b.id;});
+  trips=parsed;
+}
+
+/* ══ 即時監聽 Firebase（所有人更新後自動刷新）══ */
+tripsRef.on('value',function(snap){
+  fbParse(snap.val());
+  _fbReady=true;
+  /* Refresh current visible page */
+  var activePage=document.querySelector('.page.active');
+  var pid=activePage?activePage.id:'page-trips';
+  if(pid==='page-trips')renderTrips();
+  else if(pid==='page-home')renderHome();
+  else if(pid==='page-settle')renderSettle();
+  else if(pid==='page-members')renderMembers();
+  else if(pid==='page-analytics')renderAnalytics();
+  else if(pid==='page-album')renderAlbum();
+  else if(pid==='page-global-stats')renderGlobalStats();
+  /* Hide loading and show lock if not unlocked */
+  var ov=document.getElementById('loading-overlay');
+  if(ov)ov.style.display='none';
+  if(!_unlocked){
+    document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+    document.getElementById('page-lock').classList.add('active');
+  }
+},function(err){
+  console.error('Firebase error:',err);
+  showSyncErr();
+  var ov=document.getElementById('loading-overlay');
+  if(ov){ov.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:32px;margin-bottom:12px;">⚠️</div><div style="font-size:15px;color:var(--txt);margin-bottom:8px;">無法連線到雲端</div><div style="font-size:13px;color:var(--txt3);">請確認網路連線後重新整理頁面</div></div>';ov.style.display='flex';}
+});
+
+/* ══ Helpers ══ */
+function trip(){return trips.find(function(t){return t.id===curTripId;});}
+function members(){return trip()?trip().members:[];}
+function expenses(){return trip()?trip().expenses:[];}
+function baseCur(){return trip()?trip().baseCur:'TWD';}
+function avOf(name){var i=members().indexOf(name);return AV[i>=0?i%AV.length:0];}
+function ccOf(cat){return CC[cat]||CC['其他'];}
+function toBase(amt,fromCur){return amt*(RATES[fromCur]||1)/(RATES[baseCur()]||1);}
+function toBaseForTrip(amt,fromCur,tBase){return amt*(RATES[fromCur]||1)/(RATES[tBase]||1);}
+function baseToTWD(amt){return amt*(RATES[baseCur()]||1);}
+function fmtN(n){return Math.round(n).toLocaleString();}
+function fmtBase(amt){return baseCur()+' '+fmtN(amt);}
+function fmtBaseSh(amt){return baseCur()+' '+fmtN(amt);}
+function fmtDate(d){if(!d)return '';var p=d.split('-');return p[0]+'/'+(p[1]||'')+'/'+(p[2]||'');}
+function rateLabel(cur){
+  /* "TWD 1 = JPY 4.76" style */
+  var rTWD=RATES['TWD']||1;
+  var rCur=RATES[cur]||1;
+  if(cur==='TWD')return 'TWD（台幣，基準幣別）';
+  /* How many cur per 1 TWD */
+  var perTWD=rTWD/rCur;
+  /* How many TWD per 1 cur */
+  var perCur=rCur/rTWD;
+  if(perCur>=1){
+    return 'TWD 1 : '+cur+' '+parseFloat((1/perCur).toFixed(2))+'　｜　'+cur+' 1 = TWD '+fmtN(perCur);
+  } else {
+    return 'TWD '+fmtN(1/perTWD)+' = '+cur+' 1　｜　TWD 1 = '+cur+' '+parseFloat(perTWD.toFixed(4))+'  ';
+  }
+}
+
+
+/* ══ 密碼管理 ══ */
+var pwRef=db.ref('config/password');
+var CURRENT_PW='123456'; // local cache, overwritten by Firebase
+var _unlocked=false;
+
+/* Load password from Firebase */
+pwRef.once('value',function(snap){
+  var v=snap.val();
+  if(v)CURRENT_PW=v;
+});
+
+function doUnlock(){
+  var inp=document.getElementById('lock-inp');
+  var err=document.getElementById('lock-err');
+  if(inp.value===CURRENT_PW){
+    _unlocked=true;
+    err.style.display='none';
+    inp.value='';
+    document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+    document.getElementById('page-trips').classList.add('active');
+    renderTrips();
+  } else {
+    err.style.display='block';
+    inp.value='';
+    inp.focus();
+  }
+}
+function toggleLockVis(){
+  var inp=document.getElementById('lock-inp');
+  var eye=document.getElementById('lock-eye');
+  if(inp.type==='password'){inp.type='text';eye.textContent='🙈';}
+  else{inp.type='password';eye.textContent='👁';}
+}
+function changePassword(){
+  var oldV=document.getElementById('pw-old').value;
+  var newV=document.getElementById('pw-new').value.trim();
+  var conf=document.getElementById('pw-confirm').value.trim();
+  var msg=document.getElementById('pw-msg');
+  function showMsg(txt,ok){msg.textContent=txt;msg.style.color=ok?'var(--green-txt)':'var(--red-txt)';msg.style.display='block';}
+  if(oldV!==CURRENT_PW){showMsg('目前密碼錯誤',false);return;}
+  if(!newV){showMsg('新密碼不能為空',false);return;}
+  if(/\s/.test(newV)){showMsg('密碼不能包含空格',false);return;}
+  if(newV!==conf){showMsg('兩次輸入的密碼不一致',false);return;}
+  if(newV.length<4){showMsg('密碼至少需要 4 個字元',false);return;}
+  pwRef.set(newV).then(function(){
+    CURRENT_PW=newV;
+    document.getElementById('pw-old').value='';
+    document.getElementById('pw-new').value='';
+    document.getElementById('pw-confirm').value='';
+    showMsg('✅ 密碼已更新成功！',true);
+  }).catch(function(){showMsg('儲存失敗，請檢查網路',false);});
+}
+
+/* ══ 全旅遊統計 ══ */
+/* ══ 全旅遊統計 ══ */
+var gsChartType='donut';  // donut | bar | column | pie_full
+var gsFilterPerson='ALL'; // 'ALL' or person name
+
+function renderGlobalStats(){
+  var body=document.getElementById('global-stats-body');
+  if(!body)return;
+  if(!trips.length){body.innerHTML='<div class="empty">還沒有任何旅遊記錄</div>';return;}
+
+  var PALETTE=['#8A6E48','#5A7E48','#48687E','#7E4858','#6E4888','#887840','#486878','#785040'];
+
+  /* ── Collect all unique person names ── */
+  var allPersons=[];
+  trips.forEach(function(t){
+    (t.members||[]).forEach(function(m){if(allPersons.indexOf(m)<0)allPersons.push(m);});
+  });
+
+  /* ── Filter expenses by person if selected ── */
+  function getFilteredExpenses(t){
+    if(gsFilterPerson==='ALL')return t.expenses||[];
+    var members=Array.isArray(t.members)?t.members:[];
+    if(members.indexOf(gsFilterPerson)<0)return [];
+    return (t.expenses||[]).filter(function(e){
+      var grp=e.split==='all'?members:(e.splitTo||members);
+      return grp.indexOf(gsFilterPerson)>=0;
+    });
+  }
+  function getPersonShare(e,members){
+    /* TWD amount this person bears */
+    if(gsFilterPerson==='ALL')return e.amt*(RATES[e.cur]||1);
+    var grp=e.split==='all'?members:(e.splitTo||members);
+    if(grp.indexOf(gsFilterPerson)<0)return 0;
+    return e.amt*(RATES[e.cur]||1)/grp.length;
+  }
+
+  /* ── Aggregate ── */
+  var grandTWD=0,grandExp=0;
+  var catMapTWD={};
+  var tripRows='';
+
+  trips.forEach(function(t){
+    var members=Array.isArray(t.members)?t.members:[];
+    var fExp=getFilteredExpenses(t);
+    var tripTWD=0;
+    fExp.forEach(function(e){
+      var twd=getPersonShare(e,members);
+      tripTWD+=twd;grandTWD+=twd;grandExp++;
+      catMapTWD[e.cat]=(catMapTWD[e.cat]||0)+twd;
+    });
+    if(gsFilterPerson!=='ALL'&&members.indexOf(gsFilterPerson)<0)return;
+    tripRows+='<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--brd);">'
+      +'<div style="font-size:18px;flex-shrink:0;">'+t.emoji+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+t.name+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);">'+fExp.length+' 筆</div></div>'
+      +'<div style="text-align:right;flex-shrink:0;">'
+      +'<div style="font-size:13px;font-weight:500;color:var(--txt);">TWD '+fmtN(tripTWD)+'</div>'
+      +(t.closed?'<div style="font-size:10px;color:var(--txt3);">已封存</div>':'<div style="font-size:10px;color:var(--green-txt);">進行中</div>')
+      +'</div></div>';
+  });
+
+  var cats=Object.keys(catMapTWD).sort(function(a,b){return catMapTWD[b]-catMapTWD[a];});
+
+  /* ── Person filter dropdown ── */
+  var filterHTML='<div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'
+    +'<label style="font-size:12px;color:var(--txt2);white-space:nowrap;">👤 成員篩選</label>'
+    +'<select id="gs-person-sel" onchange="gsSetPerson(this.value)" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--txt);outline:none;">'
+    +'<option value="ALL"'+(gsFilterPerson==='ALL'?' selected':'')+'>全部成員</option>';
+  allPersons.forEach(function(m){
+    filterHTML+='<option value="'+m+'"'+(gsFilterPerson===m?' selected':'')+'>'+m+'</option>';
+  });
+  filterHTML+='</select></div>';
+
+  /* ── Chart type dropdown ── */
+  var chartTypes=[
+    {id:'donut',label:'🍩 環形圖'},
+    {id:'bar',label:'📊 橫條圖'},
+    {id:'column',label:'📈 直條圖'},
+    {id:'pie_full',label:'🥧 圓形圖'},
+  ];
+  var switcherHTML='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+    +'<label style="font-size:12px;color:var(--txt2);white-space:nowrap;">📊 圖表類型</label>'
+    +'<select id="gs-chart-sel" onchange="gsSetChart(this.value)" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--txt);outline:none;">';
+  chartTypes.forEach(function(ct){
+    switcherHTML+='<option value="'+ct.id+'"'+(gsChartType===ct.id?' selected':'')+'>'+ct.label+'</option>';
+  });
+  switcherHTML+='</select></div>';
+
+  /* ── Build selected chart ── */
+  var chartHTML='';
+  var legends='';
+
+  if(grandTWD>0){
+    if(gsChartType==='donut'){
+      /* SVG donut */
+      var cx=70,cy=70,r=54,inner=30;
+      var paths='';var angle=-Math.PI/2;
+      cats.forEach(function(cat,i){
+        var frac=catMapTWD[cat]/grandTWD;
+        var a2=angle+frac*2*Math.PI;
+        var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+        var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+        var xi1=cx+inner*Math.cos(angle),yi1=cy+inner*Math.sin(angle);
+        var xi2=cx+inner*Math.cos(a2),yi2=cy+inner*Math.sin(a2);
+        var lg=frac>0.5?1:0;
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        paths+='<path d="M'+xi1+' '+yi1+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' L'+xi2+' '+yi2+' A'+inner+' '+inner+' 0 '+lg+' 0 '+xi1+' '+yi1+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+        legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div><span class="legend-lbl">'+cat+'</span><span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
+        angle=a2;
+      });
+      var svg='<svg width="140" height="140" viewBox="0 0 140 140">'+paths
+        +'<text x="70" y="66" text-anchor="middle" font-size="10" fill="#888">合計</text>'
+        +'<text x="70" y="80" text-anchor="middle" font-size="11" font-weight="500" fill="#333">TWD</text>'
+        +'<text x="70" y="94" text-anchor="middle" font-size="10" font-weight="500" fill="#333">'+fmtN(grandTWD)+'</text>'
+        +'</svg>';
+      chartHTML='<div class="donut-wrap">'+svg+'<div class="legend">'+legends+'</div></div>';
+
+    } else if(gsChartType==='pie_full'){
+      /* SVG pie (no hole) */
+      var cx=80,cy=80,r=70;
+      var paths2='';var angle2=-Math.PI/2;
+      var lblLines='';
+      cats.forEach(function(cat,i){
+        var frac=catMapTWD[cat]/grandTWD;
+        var a2=angle2+frac*2*Math.PI;
+        var x1=cx+r*Math.cos(angle2),y1=cy+r*Math.sin(angle2);
+        var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+        var lg=frac>0.5?1:0;
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        if(frac<0.005){angle2=a2;return;}
+        paths2+='<path d="M'+cx+' '+cy+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+        /* Label at midpoint */
+        var midA=(angle2+a2)/2;
+        var lx=cx+(r*0.65)*Math.cos(midA),ly=cy+(r*0.65)*Math.sin(midA);
+        if(frac>0.06)lblLines+='<text x="'+lx+'" y="'+ly+'" text-anchor="middle" font-size="9" fill="#fff" font-weight="500">'+Math.round(frac*100)+'%</text>';
+        legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div><span class="legend-lbl">'+cat+'</span><span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
+        angle2=a2;
+      });
+      var svg2='<svg width="160" height="160" viewBox="0 0 160 160">'+paths2+lblLines+'</svg>';
+      chartHTML='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'+svg2+'<div class="legend" style="flex:1;">'+legends+'</div></div>';
+
+    } else if(gsChartType==='bar'){
+      /* Horizontal bar chart */
+      var maxV=catMapTWD[cats[0]]||1;
+      chartHTML=cats.map(function(cat,i){
+        var v=catMapTWD[cat];
+        var pct=Math.round(v/maxV*100);
+        var pctTotal=Math.round(v/grandTWD*100);
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        return '<div class="bar-row">'
+          +'<div class="bar-lbl" style="color:'+col+';font-size:11px;width:44px;">'+cat+'</div>'
+          +'<div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+          +'<div style="font-size:11px;color:var(--txt);text-align:right;min-width:80px;padding-left:8px;">TWD '+fmtN(v)+'<span style="color:var(--txt3);margin-left:4px;">('+pctTotal+'%)</span></div>'
+          +'</div>';
+      }).join('');
+
+    } else if(gsChartType==='column'){
+      /* Vertical bar chart (SVG) */
+      var W=320,H=160,pad=28,barW=Math.floor((W-pad*2)/Math.max(cats.length,1)*0.6);
+      var maxV2=catMapTWD[cats[0]]||1;
+      var colBars='',colLabels='',colVals='';
+      cats.forEach(function(cat,i){
+        var v=catMapTWD[cat];
+        var barH=Math.round((v/maxV2)*(H-30));
+        var x=pad+i*Math.floor((W-pad*2)/cats.length)+Math.floor((W-pad*2)/cats.length/2)-barW/2;
+        var y=H-barH-4;
+        var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+        colBars+='<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+barH+'" rx="3" fill="'+col+'"/>';
+        var label=cat.length>3?cat.slice(0,3):cat;
+        colLabels+='<text x="'+(x+barW/2)+'" y="'+(H+2)+'" text-anchor="middle" font-size="9" fill="#888">'+label+'</text>';
+        if(barH>18)colVals+='<text x="'+(x+barW/2)+'" y="'+(y-3)+'" text-anchor="middle" font-size="8" fill="'+col+'" font-weight="500">'+Math.round(v/grandTWD*100)+'%</text>';
+        legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div><span class="legend-lbl">'+cat+'</span><span class="legend-val">TWD '+fmtN(v)+'</span></div>';
+      });
+      chartHTML='<div style="overflow-x:auto;">'
+        +'<svg width="'+W+'" height="'+(H+18)+'" viewBox="0 0 '+W+' '+(H+18)+'">'
+        +'<line x1="'+pad+'" y1="0" x2="'+pad+'" y2="'+H+'" stroke="var(--brd)" stroke-width="0.5"/>'
+        +'<line x1="'+pad+'" y1="'+H+'" x2="'+(W-4)+'" y2="'+H+'" stroke="var(--brd)" stroke-width="0.5"/>'
+        +colBars+colLabels+colVals+'</svg></div>'
+        +'<div class="legend" style="margin-top:8px;">'+legends+'</div>';
+    }
+  } else {
+    chartHTML='<div class="empty" style="padding:20px;">此篩選條件下無花費資料</div>';
+  }
+
+  /* ── Personal paid vs owed breakdown (when person selected) ── */
+  var personDetailHTML='';
+  if(gsFilterPerson!=='ALL'){
+    var totalPaid=0,totalOwed=0,transferIn=0,transferOut=0;
+    trips.forEach(function(t){
+      var members=Array.isArray(t.members)?t.members:[];
+      if(members.indexOf(gsFilterPerson)<0)return;
+
+      /* Sum up expense-based paid and owed */
+      (t.expenses||[]).forEach(function(e){
+        var twdAmt=e.amt*(RATES[e.cur]||1);
+        /* Paid: count ALL expenses this person paid, regardless of split group */
+        if(e.payer===gsFilterPerson)totalPaid+=twdAmt;
+        /* Owed: only count if this person is in the split group */
+        var grp=e.split==='all'?members:(e.splitTo||members);
+        if(grp.indexOf(gsFilterPerson)>=0){
+          totalOwed+=twdAmt/grp.length;
+        }
+      });
+
+      /* Include confirmed transfers (converted to TWD via baseCur) */
+      var baseCurRate=RATES[t.baseCur]||1;
+      (t.transfers||[]).forEach(function(tr){
+        if(!tr.done)return;
+        var twdTr=tr.amt*baseCurRate;
+        if(tr.from===gsFilterPerson)transferOut+=twdTr;  /* this person paid someone */
+        if(tr.to===gsFilterPerson)transferIn+=twdTr;     /* this person received money */
+      });
+    });
+
+    /* Net = (expenses paid) - (expenses owed)
+       + transferOut (paying someone reduces your debt)
+       - transferIn  (receiving money reduces your receivable) */
+    var rawNet=totalPaid-totalOwed;
+    var adjNet=rawNet+transferOut-transferIn;
+
+    /* Labels */
+    var rawCls=rawNet>1?'pos':rawNet<-1?'neg':'';
+    var adjCls=adjNet>0.5?'pos':adjNet<-0.5?'neg':'';
+    var rawLbl=rawNet>1?'應收 TWD '+fmtN(rawNet):rawNet<-1?'應付 TWD '+fmtN(Math.abs(rawNet)):'均等';
+
+    /* Determine adjNet label with context */
+    var adjLbl,adjNote='';
+    if(Math.abs(adjNet)<=0.5){
+      adjLbl='✅ 已結清';
+    } else if(adjNet>0.5){
+      adjLbl='待收 TWD '+fmtN(adjNet);
+      if(rawNet>1&&transferIn>0)adjNote='（收到轉帳後仍有餘額待收）';
+    } else {
+      adjLbl='待付 TWD '+fmtN(Math.abs(adjNet));
+      if(rawNet>1&&transferIn>rawNet)adjNote='（轉帳超收 '+fmtN(transferIn-rawNet)+'，需退還）';
+      else if(rawNet<-1)adjNote='（含花費欠款）';
+    }
+
+    var hasTransfers=(transferIn+transferOut)>0;
+
+    personDetailHTML='<div class="chart-card">'
+      +'<div class="chart-title">'+gsFilterPerson+' 的個人統計</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;">'
+      +'<div class="pstat"><div class="pstat-lbl">實際付出（花費）</div><div class="pstat-val" style="font-size:14px;">TWD '+fmtN(totalPaid)+'</div></div>'
+      +'<div class="pstat"><div class="pstat-lbl">應分攤（花費）</div><div class="pstat-val" style="font-size:14px;">TWD '+fmtN(totalOwed)+'</div></div>'
+      +(hasTransfers
+        ?'<div class="pstat"><div class="pstat-lbl">已付出（轉帳）</div><div class="pstat-val" style="font-size:14px;color:var(--red-txt);">TWD '+fmtN(transferOut)+'</div></div>'
+        +'<div class="pstat"><div class="pstat-lbl">已收到（轉帳）</div><div class="pstat-val" style="font-size:14px;color:var(--green-txt);">TWD '+fmtN(transferIn)+'</div></div>'
+        :'')
+      +'</div>'
+      +'<div style="border-top:0.5px solid var(--brd);padding-top:10px;display:flex;justify-content:space-between;align-items:center;">'
+      +(hasTransfers
+        ?'<div style="font-size:12px;color:var(--txt3);">花費淨額：<span class="'+rawCls+'">'+rawLbl+'</span></div>'
+        +'<div style="text-align:right;">'
+        +'<div style="font-size:13px;font-weight:500;color:var(--txt);">結算後：<span style="font-weight:600;" class="'+adjCls+'">'+adjLbl+'</span></div>'
+        +(adjNote?'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+adjNote+'</div>':'')
+        +'</div>'
+        :'<div style="font-size:12px;color:var(--txt3);">尚無轉帳記錄</div>'
+        +'<div style="font-size:13px;font-weight:500;" class="'+rawCls+'">'+rawLbl+'</div>')
+      +'</div>'
+      +'</div>';
+  }
+
+  body.innerHTML=
+    /* 1. Filter & overview */
+    '<div class="chart-card">'
+    +'<div class="chart-title">成員篩選</div>'
+    +filterHTML
+    +'<div style="margin-top:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'
+    +'<div class="pstat"><div class="pstat-lbl">旅遊次數</div><div class="pstat-val">'+trips.length+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">花費筆數</div><div class="pstat-val">'+grandExp+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">台幣合計</div><div class="pstat-val" style="font-size:14px;">'+fmtN(grandTWD)+'</div></div>'
+    +'</div></div>'
+    /* 2. Personal detail (if person selected) */
+    +personDetailHTML
+    /* 3. Per-trip breakdown */
+    +(tripRows?'<div class="chart-card"><div class="chart-title">各旅遊花費（台幣）</div>'+tripRows+'</div>':'')
+    /* 4. Category chart with type switcher */
+    +'<div class="chart-card">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+    +'<div class="chart-title" style="margin:0;">類別分布</div>'
+    +'</div>'
+    +switcherHTML
+    +chartHTML
+    +'</div>';
+}
+
+function gsSetPerson(name){gsFilterPerson=name;renderGlobalStats();}
+function gsSetChart(type){gsChartType=type;renderGlobalStats();}
+/* ══ Navigation ══ */
+function nav(p){
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById(p).classList.add('active');
+  if(p==='page-trips')renderTrips();
+  if(p==='page-home')renderHome();
+  if(p==='page-settle')renderSettle();
+  if(p==='page-members')renderMembers();
+  if(p==='page-add')initAdd();
+  if(p==='page-new-trip')initNewTrip();
+  if(p==='page-analytics')renderAnalytics();
+  if(p==='page-album')renderAlbum();
+  if(p==='page-global-stats')renderGlobalStats();
+}
+function openTrip(id){curTripId=id;nav('page-home');}
+
+/* ══ Trip List ══ */
+function renderTrips(){
+  var html='';
+  var sortedTrips=trips.slice().sort(function(a,b){
+    var da=a.dateFrom||'';var db=b.dateFrom||'';
+    if(da>db)return -1;if(da<db)return 1;return 0;
+  });
+  sortedTrips.forEach(function(t){
+    var total=t.expenses.reduce(function(s,e){return s+toBaseForTrip(e.amt,e.cur,t.baseCur);},0);
+    var isClosed=t.closed;
+    var metaParts=[t.members.length+' 人',t.expenses.length+' 筆',t.baseCur+' '+fmtN(total)];
+    if(t.dest)metaParts.unshift(t.dest);
+    var dateStr='';
+    if(t.dateFrom&&t.dateTo)dateStr=fmtDate(t.dateFrom)+' – '+fmtDate(t.dateTo);
+    else if(t.dateFrom)dateStr=fmtDate(t.dateFrom)+' 起';
+    if(dateStr)metaParts.splice(t.dest?1:0,0,dateStr);
+    html+='<div class="trip-card'+(t.id===curTripId?' active-trip':'')+(isClosed?' closed-trip':'')+'">'
+      +'<div class="trip-icon" style="background:var(--blue-bg)" onclick="openTrip('+t.id+')">'+t.emoji+'</div>'
+      +'<div class="trip-card-body" onclick="openTrip('+t.id+')">'
+      +'<div class="trip-name-row">'+t.name+(isClosed?'<span class="closed-badge">📦 已封存</span>':'')+'</div>'
+      +'<div class="trip-meta-row">'+metaParts.join('・')+'</div>'
+      +'</div>'
+      +'<div class="trip-actions">'
+      +(isClosed
+        ?'<button class="trip-act-btn reopen" onclick="unarchiveTrip('+t.id+',event)">取消封存</button>'
+        :'<button class="trip-act-btn close" onclick="archiveTrip('+t.id+',event)">封存</button>')
+      +'<button class="trip-act-btn danger" onclick="deleteTrip('+t.id+',event)">刪除</button>'
+      +'</div>'
+      +'</div>';
+  });
+  document.getElementById('trip-list').innerHTML=html;
+}
+function archiveTrip(id,e){
+  e.stopPropagation();
+  var t=trips.find(function(x){return x.id===id;});
+  if(!t)return;
+  if(!confirm('封存「'+t.name+'」後將無法新增花費，可隨時取消封存恢復。確定封存？'))return;
+  t.closed=true;fbSaveTrips();renderTrips();
+  if(curTripId===id)renderHome();
+}
+function unarchiveTrip(id,e){
+  e.stopPropagation();
+  var t=trips.find(function(x){return x.id===id;});
+  if(t){t.closed=false;fbSaveTrips();renderTrips();if(curTripId===id)renderHome();}
+}
+function deleteTrip(id,e){
+  e.stopPropagation();
+  var t=trips.find(function(x){return x.id===id;});
+  if(!t)return;
+  if(!confirm('確定要刪除「'+t.name+'」及所有花費記錄？此操作無法復原。'))return;
+  trips=trips.filter(function(x){return x.id!==id;});
+  if(curTripId===id)curTripId=null;
+  fbSaveTrips();
+  renderTrips();
+}
+
+/* ══ New Trip ══ */
+function initNewTrip(){
+  editingTripId=null;
+  document.getElementById('nt-page-title').textContent='新增旅遊';
+  document.getElementById('nt-save-btn').textContent='建立旅遊';
+  document.getElementById('nt-back-btn').onclick=function(){nav('page-trips');};
+  selEmojiArr=[];newTripBaseCur='AUD';
+  document.getElementById('nt-name').value='';
+  document.getElementById('nt-dest').value='';
+  document.getElementById('nt-date-from').value='';
+  document.getElementById('nt-date-to').value='';
+  document.getElementById('nt-members').value='';
+  document.getElementById('emoji-ai-hint').style.display='none';
+  document.getElementById('trip-dropdown').style.display='none';
+  resetEmojiGrid();
+  updateEmojiPreview();
+  document.querySelectorAll('#base-cur-grid .cur-btn').forEach(function(b){b.classList.toggle('sel',b.dataset.cur==='AUD');});
+}
+
+function resetEmojiGrid(){
+  var items=TRIP_TYPES[0].items;
+  selEmojiArr=[];
+  renderEmojiGrid(items, items[0].e);
+}
+
+function renderEmojiGrid(items, firstSel){
+  if(firstSel && selEmojiArr.length===0) selEmojiArr=[firstSel];
+  document.getElementById('emoji-grid').innerHTML = items.map(function(it){
+    var isSel = selEmojiArr.indexOf(it.e)>=0;
+    return '<button class="emoji-btn'+(isSel?' sel':'')+'" data-e="'+it.e+'" onclick="sEmoji(this)" title="'+it.title+'">'
+      +it.e+'<span class="emoji-tip">'+it.tip+'</span></button>';
+  }).join('');
+  updateEmojiPreview();
+}
+
+function sEmoji(btn){
+  var e=btn.dataset.e;
+  var idx=selEmojiArr.indexOf(e);
+  if(idx>=0){ selEmojiArr.splice(idx,1); }
+  else { selEmojiArr.push(e); }
+  btn.classList.toggle('sel', selEmojiArr.indexOf(e)>=0);
+  updateEmojiPreview();
+}
+
+function clearEmojiSel(){
+  selEmojiArr=[];
+  document.querySelectorAll('#emoji-grid .emoji-btn').forEach(function(b){b.classList.remove('sel');});
+  updateEmojiPreview();
+}
+
+function updateEmojiPreview(){
+  var wrap=document.getElementById('emoji-sel-preview');
+  var tags=document.getElementById('emoji-sel-tags');
+  if(!wrap||!tags)return;
+  if(selEmojiArr.length>0){
+    wrap.style.display='flex';
+    tags.textContent=selEmojiArr.join(' ');
+  } else {
+    wrap.style.display='none';
+    tags.textContent='';
+  }
+}
+
+var emojiDebounceTimer=null;
+
+var TRIP_TYPES=[
+  {name:'海島度假',   emoji:'🏝', hint:'陽光、沙灘、浮潛',
+   items:[{e:'🏝',tip:'小島',title:'熱帶小島'},{e:'🌊',tip:'海浪',title:'碧藍海浪'},{e:'🐠',tip:'潛水',title:'熱帶魚・潛水'},{e:'🍹',tip:'雞尾酒',title:'熱帶飲品'},{e:'🌴',tip:'椰樹',title:'椰林樹影'},{e:'🏄',tip:'衝浪',title:'衝浪・水上活動'},{e:'🐚',tip:'貝殼',title:'撿貝殼'},{e:'🌺',tip:'花環',title:'熱帶花卉'},{e:'🤿',tip:'浮潛',title:'浮潛・潛水'},{e:'☀',tip:'陽光',title:'陽光・度假'}]},
+  {name:'城市觀光',   emoji:'🏙', hint:'博物館、景點、購物',
+   items:[{e:'🏙',tip:'都市',title:'城市天際線'},{e:'🗺',tip:'地圖',title:'景點導覽'},{e:'🏛',tip:'博物館',title:'藝術博物館'},{e:'🛍',tip:'購物',title:'逛街購物'},{e:'🍽',tip:'美食',title:'城市美食'},{e:'🚇',tip:'地鐵',title:'地鐵探索'},{e:'📸',tip:'拍照',title:'打卡拍照'},{e:'🌆',tip:'夜景',title:'城市夜景'},{e:'🎭',tip:'表演',title:'文化表演'},{e:'✈',tip:'飛機',title:'出發旅行'}]},
+  {name:'登山健行',   emoji:'🏔', hint:'百岳、步道、露營',
+   items:[{e:'🏔',tip:'高山',title:'巍峨高山'},{e:'🥾',tip:'登山鞋',title:'登山健行'},{e:'⛺',tip:'露營',title:'野外露營'},{e:'🌲',tip:'森林',title:'山林步道'},{e:'🦅',tip:'老鷹',title:'高山猛禽'},{e:'🌄',tip:'日出',title:'山頂日出'},{e:'🧗',tip:'攀岩',title:'岩壁攀爬'},{e:'🗺',tip:'地圖',title:'路線地圖'},{e:'💪',tip:'挑戰',title:'挑戰自我'},{e:'❄',tip:'雪山',title:'雪山冰峰'}]},
+  {name:'美食之旅',   emoji:'🍜', hint:'地道小吃、餐廳、市場',
+   items:[{e:'🍜',tip:'麵食',title:'道地麵食'},{e:'🍣',tip:'壽司',title:'日式壽司'},{e:'🥘',tip:'燉鍋',title:'傳統燉菜'},{e:'🍷',tip:'紅酒',title:'品酒之旅'},{e:'🍕',tip:'披薩',title:'義式披薩'},{e:'🍦',tip:'甜點',title:'甜點探索'},{e:'☕',tip:'咖啡',title:'咖啡文化'},{e:'🛒',tip:'市場',title:'傳統市場'},{e:'🥗',tip:'沙拉',title:'健康飲食'},{e:'🎉',tip:'歡聚',title:'歡樂聚餐'}]},
+  {name:'郵輪旅遊',   emoji:'🚢', hint:'地中海、加勒比、豪華',
+   items:[{e:'🚢',tip:'郵輪',title:'豪華郵輪'},{e:'🌊',tip:'海洋',title:'廣闊海洋'},{e:'⚓',tip:'錨',title:'海港停泊'},{e:'🌅',tip:'日落',title:'海上夕陽'},{e:'🎭',tip:'表演',title:'船上娛樂'},{e:'🍽',tip:'餐廳',title:'郵輪美食'},{e:'🌍',tip:'地球',title:'環遊世界'},{e:'🐬',tip:'海豚',title:'海豚伴遊'},{e:'🏊',tip:'游泳',title:'甲板泳池'},{e:'✈',tip:'飛機',title:'出發上船'}]},
+  {name:'自駕露營',   emoji:'🚗', hint:'公路、營地、親近自然',
+   items:[{e:'🚗',tip:'自駕',title:'公路自駕'},{e:'🗺',tip:'地圖',title:'路線規劃'},{e:'⛺',tip:'露營',title:'野外露營'},{e:'🌄',tip:'風景',title:'沿途風景'},{e:'⛽',tip:'加油',title:'加油站'},{e:'🏕',tip:'營地',title:'露營營地'},{e:'🌲',tip:'樹林',title:'森林秘境'},{e:'🌅',tip:'夕陽',title:'公路夕陽'},{e:'🎵',tip:'音樂',title:'車上音樂'},{e:'🍦',tip:'小吃',title:'路邊小吃'}]},
+  {name:'蜜月旅行',   emoji:'💑', hint:'浪漫、雙人、紀念',
+   items:[{e:'💑',tip:'情侶',title:'甜蜜情侶'},{e:'💍',tip:'戒指',title:'愛的承諾'},{e:'🌹',tip:'玫瑰',title:'浪漫玫瑰'},{e:'🥂',tip:'香檳',title:'慶祝香檳'},{e:'🏝',tip:'海島',title:'海島蜜月'},{e:'🌅',tip:'夕陽',title:'浪漫夕陽'},{e:'💐',tip:'花束',title:'鮮花花束'},{e:'🍾',tip:'慶祝',title:'慶祝時刻'},{e:'🛎',tip:'飯店',title:'豪華飯店'},{e:'❤',tip:'愛心',title:'愛的旅程'}]},
+  {name:'滑雪冰雪',   emoji:'⛷', hint:'雪場、冰川、雪橇',
+   items:[{e:'⛷',tip:'滑雪',title:'滑雪高手'},{e:'🏔',tip:'雪山',title:'白雪高山'},{e:'❄',tip:'雪花',title:'晶瑩雪花'},{e:'🧤',tip:'手套',title:'防寒手套'},{e:'🌨',tip:'下雪',title:'飄雪天氣'},{e:'🏂',tip:'單板',title:'單板滑雪'},{e:'🌲',tip:'雪樹',title:'雪後松林'},{e:'☕',tip:'熱飲',title:'暖身熱飲'},{e:'🛷',tip:'雪橇',title:'雪橇體驗'},{e:'🎿',tip:'雪板',title:'雪板裝備'}]},
+  {name:'文化藝術',   emoji:'🎨', hint:'古蹟、博物館、表演',
+   items:[{e:'🎨',tip:'藝術',title:'藝術創作'},{e:'🏛',tip:'古蹟',title:'歷史古蹟'},{e:'🎭',tip:'戲劇',title:'劇場表演'},{e:'📚',tip:'文化',title:'文化知識'},{e:'🖼',tip:'畫作',title:'博物館畫廊'},{e:'⛩',tip:'聖地',title:'文化聖地'},{e:'🎼',tip:'音樂',title:'音樂欣賞'},{e:'🏺',tip:'古物',title:'古董文物'},{e:'🌍',tip:'世界',title:'世界文化'},{e:'✈',tip:'飛機',title:'出發探索'}]},
+  {name:'親子家庭',   emoji:'👨‍👩‍👧‍👦', hint:'主題樂園、動物園、親子活動',
+   items:[{e:'🎡',tip:'摩天輪',title:'遊樂設施'},{e:'🐘',tip:'動物園',title:'動物園探索'},{e:'🎠',tip:'旋轉木馬',title:'旋轉木馬'},{e:'🍦',tip:'冰淇淋',title:'甜點時光'},{e:'🎢',tip:'雲霄飛車',title:'刺激雲霄飛車'},{e:'🌈',tip:'彩虹',title:'美好回憶'},{e:'📸',tip:'拍照',title:'家庭合影'},{e:'🎈',tip:'氣球',title:'歡樂氣氛'},{e:'🏖',tip:'海灘',title:'海邊玩沙'},{e:'❤',tip:'愛',title:'家庭時光'}]},
+  {name:'其他（自行輸入）',emoji:'✏', hint:'輸入你的旅遊名稱',
+   items:[{e:'✈',tip:'飛機',title:'出發旅行'},{e:'🌏',tip:'世界',title:'探索世界'},{e:'🗺',tip:'地圖',title:'路線規劃'},{e:'📸',tip:'拍照',title:'記錄回憶'},{e:'🎒',tip:'背包',title:'背包旅行'},{e:'🌅',tip:'日出',title:'美好日出'},{e:'🍽',tip:'美食',title:'享受美食'},{e:'🏨',tip:'飯店',title:'舒適住宿'},{e:'🎉',tip:'慶祝',title:'歡樂旅程'},{e:'⭐',tip:'精彩',title:'精彩旅程'}]}
+];
+
+function renderDropdown(filter){
+  var list=TRIP_TYPES;
+  if(filter){
+    var f=filter.toLowerCase();
+    list=TRIP_TYPES.filter(function(t){return t.name.indexOf(filter)>=0||t.hint.indexOf(filter)>=0;});
+    if(!list.length)list=TRIP_TYPES;
+  }
+  document.getElementById('dropdown-list').innerHTML=list.map(function(t){
+    return '<div class="dropdown-item" onclick="selectTripType(\''+t.name+'\',\''+t.emoji+'\')">'
+      +'<span style="font-size:20px;margin-right:10px">'+t.emoji+'</span>'
+      +'<div><div style="font-size:14px;font-weight:500;color:var(--txt)">'+t.name+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3)">'+t.hint+'</div></div>'
+      +'</div>';
+  }).join('');
+}
+
+function showDropdown(){
+  renderDropdown('');
+  document.getElementById('trip-dropdown').style.display='block';
+  document.getElementById('emoji-ai-hint').style.display='none';
+}
+
+function hideDropdown(){
+  setTimeout(function(){document.getElementById('trip-dropdown').style.display='none';},150);
+}
+
+function selectTripType(name,emoji){
+  document.getElementById('nt-name').value=name;
+  document.getElementById('trip-dropdown').style.display='none';
+  var t=TRIP_TYPES.find(function(x){return x.name===name;});
+  if(t){
+    selEmojiArr=[t.emoji];
+    renderEmojiGrid(t.items, t.emoji);
+    document.getElementById('emoji-ai-hint').style.display=t.name==='其他（自行輸入）'?'none':'inline';
+    if(t.name==='其他（自行輸入）'){
+      selEmojiArr=[];
+      document.getElementById('nt-name').value='';
+      document.getElementById('nt-name').focus();
+      renderEmojiGrid(t.items, null);
+    }
+  }
+}
+
+function onTripNameInput(){
+  var name=document.getElementById('nt-name').value.trim();
+  renderDropdown(name);
+  document.getElementById('trip-dropdown').style.display='block';
+  if(!name){
+    document.getElementById('emoji-ai-hint').style.display='none';
+    resetEmojiGrid();
+  }
+}
+function sBaseCur(btn){newTripBaseCur=btn.dataset.cur;document.querySelectorAll('#base-cur-grid .cur-btn').forEach(function(b){b.classList.toggle('sel',b===btn);});}
+function saveTrip(){
+  var name=document.getElementById('nt-name').value.trim();
+  if(!name){alert('請輸入旅遊名稱');return;}
+  var dest=document.getElementById('nt-dest').value.trim();
+  var df=document.getElementById('nt-date-from').value;
+  var dt=document.getElementById('nt-date-to').value;
+  if(df&&dt&&dt<df){alert('結束日期不能早於開始日期');return;}
+  var mStr=document.getElementById('nt-members').value.trim();
+  var emojiStr=selEmojiArr.length?selEmojiArr.join(''):'✈';
+
+  if(editingTripId!==null){
+    /* Edit mode: update existing trip */
+    var t=trips.find(function(x){return x.id===editingTripId;});
+    if(t){
+      t.name=name;t.dest=dest;t.dateFrom=df;t.dateTo=dt;t.emoji=emojiStr;
+      t.baseCur=newTripBaseCur;
+      /* Update members only if field was changed */
+      if(mStr){
+        var newMembers=mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean);
+        if(newMembers.length){
+          /* ── 防呆：找出被刪除但有記錄的成員 ── */
+          var oldMembers=t.members||[];
+          var removed=oldMembers.filter(function(m){return newMembers.indexOf(m)<0;});
+          var warnings=[];
+          removed.forEach(function(m){
+            var payExp=(t.expenses||[]).filter(function(e){return e.payer===m;});
+            var splitExp=(t.expenses||[]).filter(function(e){
+              var grp=e.split==='all'?oldMembers:(e.splitTo||oldMembers);
+              return grp.indexOf(m)>=0;
+            });
+            var trFrom=(t.transfers||[]).filter(function(tr){return tr.from===m;});
+            var trTo=(t.transfers||[]).filter(function(tr){return tr.to===m;});
+            var reasons=[];
+            if(payExp.length)reasons.push('付款人（'+payExp.length+' 筆花費）');
+            if(splitExp.length)reasons.push('分攤成員（'+splitExp.length+' 筆花費）');
+            if(trFrom.length)reasons.push('已付出轉帳（'+trFrom.length+' 筆）');
+            if(trTo.length)reasons.push('已收到轉帳（'+trTo.length+' 筆）');
+            if(reasons.length){
+              warnings.push('・'+m+'：'+reasons.join('、'));
+            }
+          });
+          if(warnings.length){
+            var msg='以下成員有花費或轉帳記錄，刪除後將影響分攤計算：\n\n'
+              +warnings.join('\n')
+              +'\n\n確定要移除這些成員嗎？\n（花費和轉帳記錄不會被刪除，但分攤計算可能不正確）';
+            if(!confirm(msg))return;
+          }
+          t.members=newMembers;
+        }
+      }
+    }
+    fbSaveTrips();
+    editingTripId=null;
+    nav('page-home');
+  } else {
+    /* New trip */
+    if(trips.some(function(t){return t.name.trim()===name;})){if(!confirm('已有同名旅遊「'+name+'」，確定要建立？'))return;}
+    var mList=mStr?mStr.split(/[,，、]/).map(function(s){return s.trim();}).filter(Boolean):['成員1'];
+    trips.push({id:nextTripId++,name:name,emoji:emojiStr,dest:dest,dateFrom:df,dateTo:dt,baseCur:newTripBaseCur,closed:false,members:mList,nextId:1,expenses:[],photos:[],transfers:[]});
+    fbSaveTrips();
+    nav('page-trips');
+  }
+}
+
+/* ══ Home ══ */
+function renderHome(){
+  var t=trip();if(!t)return;
+  document.getElementById('trip-title').textContent=t.emoji+' '+t.name;
+  var editBtn=document.getElementById('edit-trip-btn');
+  if(editBtn)editBtn.style.opacity=t.closed?'0.35':'';
+  var metaArr=[];
+  if(t.dest)metaArr.push('📍'+t.dest);
+  if(t.dateFrom&&t.dateTo)metaArr.push('🗓 '+fmtDate(t.dateFrom)+' – '+fmtDate(t.dateTo));
+  else if(t.dateFrom)metaArr.push('🗓 '+fmtDate(t.dateFrom)+' 起');
+  metaArr.push(members().length+' 人');
+  if(t.closed)metaArr.push('📦 已封存');
+  document.getElementById('trip-meta').textContent=metaArr.join('  ');
+  var total=expenses().reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  var pp=members().length?total/members().length:0;
+  document.getElementById('s-tot').textContent=fmtBaseSh(total);
+  document.getElementById('s-pp').textContent=fmtBaseSh(pp);
+  document.getElementById('s-cnt').textContent=expenses().length+' 筆';
+  var fab=document.getElementById('add-fab');
+  if(t.closed){fab.disabled=true;fab.textContent='📦 此旅遊已封存，取消封存後可新增';}
+  else{fab.disabled=false;fab.textContent='＋ 新增花費';}
+  var byDate={};
+  expenses().forEach(function(e){if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+  var html='';
+  if(!expenses().length){html='<div class="empty">還沒有記帳，點「新增花費」開始</div>';}
+  else Object.keys(byDate).forEach(function(date){
+    html+='<div class="sec-head">'+date+'</div>';
+    byDate[date].forEach(function(e){
+      var c=ccOf(e.cat);
+      var baseAmt=toBase(e.amt,e.cur);
+      var amtLabel=e.cur===baseCur()?baseCur()+' '+fmtN(e.amt):e.cur+' '+fmtN(e.amt)+' (≈'+baseCur()+' '+fmtN(baseAmt)+')';
+      html+='<div class="exp-row" style="position:relative;" onclick="openExpDet('+e.id+',\'page-home\')">'
+        +'<div class="cat-icon" style="background:'+c.bg+';font-size:18px">'+c.e+'</div>'
+        +'<div class="exp-main"><div class="exp-name">'+e.desc+'</div>'
+        +'<div class="exp-meta">'+e.cat+'・'+(e.split==='all'?'全體平攤':'僅 '+e.splitTo.length+' 人')+(e.photo?' 📎':'')+'</div></div>'
+        +'<div class="exp-right"><div class="exp-amt">'+amtLabel+'</div>'
+        +'<div class="exp-who">'+e.payer+'付</div></div>'
+        +'<button class="exp-del-btn" data-eid="'+e.id+'" onclick="delExpFromList(event,this)" style="position:absolute;right:0;top:0;bottom:0;width:44px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--red-txt);opacity:0;" '
+        +'onmouseenter="this.style.opacity=\'1\';this.style.background=\'var(--red-bg)\'" '
+        +'onmouseleave="this.style.opacity=\'0\';this.style.background=\'transparent\'" '
+        +'title="刪除">🗑</button>'
+        +'</div>';
+    });
+  });
+  document.getElementById('exp-list').innerHTML=html;
+}
+
+/* ══ Analytics ══ */
+function renderAnalytics(){
+  var t=trip();if(!t){document.getElementById('analytics-body').innerHTML='<div class="empty">請先開啟一個旅遊</div>';return;}
+  if(!expenses().length){document.getElementById('analytics-body').innerHTML='<div class="empty">還沒有任何花費記錄</div>';return;}
+  var total=expenses().reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+
+  /* 1. Category breakdown donut */
+  var catMap={};
+  expenses().forEach(function(e){
+    var b=toBase(e.amt,e.cur);
+    catMap[e.cat]=(catMap[e.cat]||0)+b;
+  });
+  var cats=Object.keys(catMap).sort(function(a,b){return catMap[b]-catMap[a];});
+  var PALETTE=['#3B6D11','#185FA5','#534AB7','#854F0B','#993556','#0F6E56','#A32D2D','#5F5E5A'];
+  /* Build SVG donut */
+  var cx=70,cy=70,r=52,inner=32;
+  var paths='';var legends='';
+  var angle=-Math.PI/2;
+  cats.forEach(function(cat,i){
+    var frac=catMap[cat]/total;
+    var a2=angle+frac*2*Math.PI;
+    var x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+    var x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    var xi1=cx+inner*Math.cos(angle),yi1=cy+inner*Math.sin(angle);
+    var xi2=cx+inner*Math.cos(a2),yi2=cy+inner*Math.sin(a2);
+    var lg=frac>0.5?1:0;
+    var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+    paths+='<path d="M'+xi1+' '+yi1+' L'+x1+' '+y1+' A'+r+' '+r+' 0 '+lg+' 1 '+x2+' '+y2+' L'+xi2+' '+yi2+' A'+inner+' '+inner+' 0 '+lg+' 0 '+xi1+' '+yi1+' Z" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+    legends+='<div class="legend-item"><div class="legend-dot" style="background:'+col+'"></div>'
+      +'<span class="legend-lbl">'+cat+'</span>'
+      +'<span class="legend-val">'+Math.round(frac*100)+'%</span></div>';
+    angle=a2;
+  });
+  var donutSVG='<svg class="donut-svg" width="140" height="140" viewBox="0 0 140 140">'
+    +paths
+    +'<text x="70" y="66" text-anchor="middle" font-size="11" fill="#666">總計</text>'
+    +'<text x="70" y="82" text-anchor="middle" font-size="13" font-weight="500" fill="#111">'+baseCur()+' '+fmtN(total)+'</text>'
+    +'</svg>';
+
+  /* 2. Member spend bars */
+  var mbrSpend={};
+  members().forEach(function(m){mbrSpend[m]=0;});
+  expenses().forEach(function(e){mbrSpend[e.payer]=(mbrSpend[e.payer]||0)+toBase(e.amt,e.cur);});
+  var maxSpend=Math.max.apply(null,members().map(function(m){return mbrSpend[m]||0;}));
+  var mbrBars=members().filter(function(m){return (mbrSpend[m]||0)>0;}).map(function(m,i){
+    var v=mbrSpend[m]||0;
+    var pct=maxSpend>0?Math.round(v/maxSpend*100):0;
+    var idx=members().indexOf(m);
+    var a=AV[idx%AV.length];
+    return '<div class="bar-row">'
+      +'<div class="bar-lbl" style="color:'+a.c+'">'+m+'</div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+a.c+'"></div></div>'
+      +'<div class="bar-val">'+baseCur()+' '+fmtN(v)+'</div>'
+      +'</div>';
+  }).join('') || '<div class="empty" style="padding:14px;">無付款記錄</div>';
+
+  /* 3. Category amount bars */
+  var catBars=cats.map(function(cat,i){
+    var v=catMap[cat];
+    var pct=Math.round(v/total*100);
+    var col=CC[cat]?CC[cat].hex:PALETTE[i%PALETTE.length];
+    return '<div class="bar-row">'
+      +'<div class="bar-lbl" style="color:'+col+'">'+cat+'</div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+      +'<div class="bar-val">'+baseCur()+' '+fmtN(v)+'</div>'
+      +'</div>';
+  }).join('');
+
+  /* 4. Key stats */
+  var avgPerDay=0;
+  var dates=Object.keys({});
+  var dateSet={};
+  expenses().forEach(function(e){dateSet[e.date]=1;});
+  var nDays=Object.keys(dateSet).length||1;
+  avgPerDay=total/nDays;
+  var topCat=cats[0]||'';
+  var topPayer=members().slice().sort(function(a,b){return (mbrSpend[b]||0)-(mbrSpend[a]||0);})[0]||'';
+
+  var html='';
+  html+='<div class="chart-card">'
+    +'<div class="chart-title">支出類別分布</div>'
+    +'<div class="donut-wrap">'+donutSVG+'<div class="legend">'+legends+'</div></div>'
+    +'</div>';
+  html+='<div class="chart-card">'
+    +'<div class="chart-title">類別金額排行</div>'+catBars+'</div>';
+  html+='<div class="chart-card">'
+    +'<div class="chart-title">成員付款金額</div>'+mbrBars+'</div>';
+  html+='<div class="chart-card"><div class="chart-title">旅遊統計</div>'
+    +'<div class="stat-row"><span class="stat-lbl">總花費</span><span class="stat-val">'+fmtBase(total)+'</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">台幣等值</span><span class="stat-val">TWD '+fmtN(baseToTWD(total))+'</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">每人均攤</span><span class="stat-val">'+fmtBase(members().length?total/members().length:0)+'</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">記帳天數</span><span class="stat-val">'+nDays+' 天</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">日均花費</span><span class="stat-val">'+fmtBase(avgPerDay)+'</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">最高類別</span><span class="stat-val">'+topCat+'</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">最多付款</span><span class="stat-val">'+topPayer+'</span></div>'
+    +'<div class="stat-row"><span class="stat-lbl">記帳筆數</span><span class="stat-val">'+expenses().length+' 筆</span></div>'
+    +'</div>';
+  document.getElementById('analytics-body').innerHTML=html;
+}
+
+/* ══ Expense Detail ══ */
+function openExpDet(id,from){
+  expBack=from||'page-home';
+  document.getElementById('exp-back').onclick=function(){nav(expBack);};
+  var e=expenses().find(function(x){return x.id===id;});if(!e)return;
+  var grp=e.split==='all'?[].concat(members()):[].concat(e.splitTo);
+  var baseAmt=toBase(e.amt,e.cur);
+  var share=grp.length?baseAmt/grp.length:0;
+  var c=ccOf(e.cat);
+  var sameCur=e.cur===baseCur();
+  var splitRows=grp.map(function(m){
+    var a=avOf(m);var isP=m===e.payer;
+    return '<div class="split-pr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div>'
+      +'<div style="flex:1;font-size:13px;color:var(--txt)">'+m+(isP?'<span class="payer-tag">付款</span>':'')+'</div>'
+      +'<div style="text-align:right"><div style="font-size:13px;font-weight:500;color:var(--txt)">'+fmtBase(share)+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3)">≈ TWD '+fmtN(baseToTWD(share))+'</div></div></div>';
+  }).join('');
+  var adjBal=computeBalAfterTransfers(); // global bal after all transfers
+  var netRows=grp.map(function(m){
+    var a=avOf(m);var isP=m===e.payer;
+    var expNet=isP?baseAmt-share:-share; // this expense's net for this person
+    var globalAdj=adjBal[m]||0;          // their overall balance after transfers
+
+    var lbl,cls,note='';
+    if(Math.abs(expNet)<0.01){
+      lbl='無需轉帳';cls='';
+    } else if(expNet>0.01){
+      // This person is owed money from this expense
+      if(globalAdj>0.01){
+        lbl='待收 '+fmtBase(expNet);cls='pos';
+      } else if(globalAdj<-0.01){
+        lbl='已收（整體已超收）';cls='pos';note='整體淨：待付 '+fmtBase(Math.abs(globalAdj));
+      } else {
+        lbl='已收（整體已結清）';cls='pos';note='整體淨：±0';
+      }
+    } else {
+      // This person owes money from this expense
+      if(globalAdj<-0.01){
+        lbl='待付 '+fmtBase(Math.abs(expNet));cls='neg';
+      } else if(globalAdj>0.01){
+        lbl='已付（整體仍有待收）';cls='neg';note='整體淨：待收 '+fmtBase(globalAdj);
+      } else {
+        lbl='已付（整體已結清）';cls='neg';note='整體淨：±0';
+      }
+    }
+    return '<div class="split-pr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div>'
+      +'<div style="flex:1;font-size:13px;color:var(--txt)">'+m+'</div>'
+      +'<div style="text-align:right;"><div style="font-size:13px;font-weight:500" class="'+cls+'">'+lbl+'</div>'
+      +(note?'<div style="font-size:10px;color:var(--txt3);">'+note+'</div>':'')
+      +'</div></div>';
+  }).join('');
+  var origAmt=sameCur?''
+    :'<div class="det-row"><div class="det-lbl">原始金額</div><div class="det-val">'+e.cur+' '+fmtN(e.amt)+'</div></div>'
+    +'<div class="det-row"><div class="det-lbl">換算匯率</div><div class="det-val">'+rateLabel(e.cur)+'</div></div>';
+  document.getElementById('exp-det-body').innerHTML=
+    '<div class="det-hero"><div class="cat-icon" style="width:52px;height:52px;border-radius:14px;background:'+c.bg+';font-size:26px">'+c.e+'</div>'
+    +'<div><div style="font-size:15px;font-weight:500;color:var(--txt);margin-bottom:2px">'+e.desc+'</div>'
+    +'<div style="font-size:26px;font-weight:500;color:var(--txt)">'+fmtBase(baseAmt)+'</div>'
+    +'<div style="font-size:13px;color:var(--txt3)">≈ TWD '+fmtN(baseToTWD(baseAmt))+'</div></div></div>'
+    +'<div class="det-row"><div class="det-lbl">類別</div><div class="det-val">'+e.cat+'</div></div>'
+    +'<div class="det-row"><div class="det-lbl">日期</div><div class="det-val">'+e.date+'</div></div>'
+    +'<div class="det-row"><div class="det-lbl">付款人</div><div class="det-val">'+e.payer+'</div></div>'
+    +origAmt
+    +'<div class="det-row"><div class="det-lbl">分攤</div><div class="det-val">'+(e.split==='all'?'全體（'+members().length+'人）':'指定（'+grp.length+'人）')+'</div></div>'
+    +'<div class="det-section"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px">各人分攤金額（'+baseCur()+'）</div>'+splitRows+'</div>'
+    +'<div class="det-section"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px">各人淨帳狀態</div>'+netRows+'</div>'
+    +(trip()&&trip().closed
+      ?'<div style="padding:12px 16px;font-size:13px;color:var(--txt3);text-align:center">📦 旅遊已封存，如需編輯請先取消封存</div>'
+      :'<div style="display:flex;gap:8px;margin:14px 16px;">'
+        +'<button onclick="openEditExp('+e.id+')" style="flex:1;background:var(--bg2);border:0.5px solid var(--brd2);color:var(--txt);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">✏️ 修改</button>'
+        +'<button onclick="showDelOptions('+e.id+')" style="flex:1;background:var(--red-bg);border:0.5px solid var(--red-txt);color:var(--red-txt);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;margin:0;">🗑 刪除</button>'
+        +'</div>'
+      +'<div id="del-options-'+e.id+'" style="display:none;margin:0 16px 14px;background:var(--bg2);border-radius:10px;overflow:hidden;border:0.5px solid var(--brd2);">'
+        +'<div style="padding:10px 14px 6px;font-size:12px;color:var(--txt2);font-weight:500;">請選擇刪除方式：</div>'
+        +'<button onclick="delExp('+e.id+')" style="width:100%;text-align:left;background:none;border:none;border-top:0.5px solid var(--brd);padding:11px 14px;font-size:13px;color:var(--txt);cursor:pointer;">'
+          +'🗑 只刪花費記錄 <span style="font-size:11px;color:var(--txt3);">（保留已轉帳記錄）</span>'
+        +'</button>'
+        +'<button onclick="delExpAndTransfers('+e.id+',\''+e.payer+'\')" style="width:100%;text-align:left;background:none;border:none;border-top:0.5px solid var(--brd);padding:11px 14px;font-size:13px;color:var(--red-txt);cursor:pointer;">'
+          +'💥 整筆刪除 <span style="font-size:11px;color:var(--txt3);">（同時刪除花費＋相關轉帳）</span>'
+        +'</button>'
+        +'<button onclick="hideDelOptions('+e.id+')" style="width:100%;text-align:left;background:none;border:none;border-top:0.5px solid var(--brd);padding:11px 14px;font-size:13px;color:var(--txt3);cursor:pointer;">取消</button>'
+      +'</div>')
+    +(e.photo?'<div style="padding:12px 16px;"><div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:6px">收據 / 相片</div><img class="receipt-img" src="'+e.photo+'" alt="收據" onclick="openLightboxDirect(\''+e.id+'\')"></div>':'');
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-exp-det').classList.add('active');
+}
+function showDelOptions(id){
+  document.getElementById('del-options-'+id).style.display='block';
+}
+function hideDelOptions(id){
+  document.getElementById('del-options-'+id).style.display='none';
+}
+function delExpAndTransfers(expId,payer){
+  var t=trip();if(!t)return;
+  var expIdNum=parseInt(expId);
+  var curIdNum=parseInt(curTripId);
+  /* Find trip index */
+  var tidx=-1;
+  for(var i=0;i<trips.length;i++){if(parseInt(trips[i].id)===curIdNum){tidx=i;break;}}
+  if(tidx<0){alert('找不到旅遊資料');return;}
+  /* Find expense */
+  var e=(trips[tidx].expenses||[]).filter(function(x){return parseInt(x.id)===expIdNum;})[0];
+  if(!e)return;
+  /* Count related transfers to payer */
+  var relTrans=(trips[tidx].transfers||[]).filter(function(tr){return tr.to===payer&&tr.done;});
+  var msg='整筆刪除「'+e.desc+'」\n\n・刪除花費記錄\n';
+  if(relTrans.length)msg+='・同時刪除 '+relTrans.length+' 筆付款人（'+payer+'）收到的轉帳記錄\n\n⚠ 此操作無法復原。';
+  else msg+='\n此操作無法復原。';
+  if(!confirm(msg))return;
+  /* Delete expense */
+  trips[tidx].expenses=trips[tidx].expenses.filter(function(x){return parseInt(x.id)!==expIdNum;});
+  /* Delete related transfers to payer */
+  if(relTrans.length){
+    trips[tidx].transfers=(trips[tidx].transfers||[]).filter(function(tr){return !(tr.to===payer&&tr.done);});
+  }
+  fbSaveTrips();
+  nav(expBack);
+}
+
+function _deleteExpById(expId){
+  var expIdNum=parseInt(expId);
+  var curId=parseInt(curTripId);
+  var tidx=-1;
+  for(var i=0;i<trips.length;i++){
+    if(parseInt(trips[i].id)===curId){tidx=i;break;}
+  }
+  console.log('[del] curTripId=',curTripId,'('+curId+') tidx=',tidx,'expId=',expIdNum);
+  if(tidx<0){console.log('[del] FAILED: trip not found');return false;}
+  var before=trips[tidx].expenses.length;
+  trips[tidx].expenses=trips[tidx].expenses.filter(function(e){return parseInt(e.id)!==expIdNum;});
+  var after=trips[tidx].expenses.length;
+  console.log('[del] expenses before=',before,'after=',after,'success=',after<before);
+  return after<before;
+}
+
+function delExpFromList(ev,btn){
+  ev.stopPropagation();
+  var t=trip();
+  if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再刪除花費。');return;}
+  var id=parseInt(btn.getAttribute('data-eid'));
+  var found=(t.expenses||[]).filter(function(x){return x.id===id;});
+  if(!found.length)return;
+  if(!confirm('確定刪除「'+found[0].desc+'」？\n刪除後無法復原。'))return;
+  if(_deleteExpById(id))fbSaveTrips();
+}
+
+function delExp(id){
+  var expIdNum=parseInt(id);
+  var curIdNum=parseInt(curTripId);
+  var tidx=-1;
+  for(var i=0;i<trips.length;i++){if(parseInt(trips[i].id)===curIdNum){tidx=i;break;}}
+  if(tidx<0)return;
+  trips[tidx].expenses=trips[tidx].expenses.filter(function(e){return parseInt(e.id)!==expIdNum;});
+  fbSaveTrips();
+  nav(expBack);
+}
+
+/* ══ Person Detail ══ */
+function openPersonDet(name,from){
+  personBack=from||'page-settle';
+  document.getElementById('person-back').onclick=function(){nav(personBack);};
+  document.getElementById('person-det-title').textContent=name+'的明細';
+  var a=avOf(name);var bal=computeBalAfterTransfers();var myBal=bal[name]||0;
+  /* 花費付出（代墊） */
+  var paidByExp=expenses().filter(function(e){return e.payer===name;}).reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  /* 轉帳付出（已確認）*/
+  var paidByTransfer=(trip()&&trip().transfers||[]).filter(function(tr){return tr.from===name&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+  /* 轉帳收到 */
+  var receivedByTransfer=(trip()&&trip().transfers||[]).filter(function(tr){return tr.to===name&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+  var totalPaid=paidByExp+paidByTransfer-receivedByTransfer;
+  var myExp=expenses().filter(function(e){var grp=e.split==='all'?members():e.splitTo;return grp.indexOf(name)>=0;});
+  var totalOwed=myExp.reduce(function(s,e){var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);return s+(grp.length?b/grp.length:0);},0);
+  var balCls=myBal>1?'pos':myBal<-1?'neg':'';
+  var balTxt=myBal>1?'待收 '+fmtBase(myBal):myBal<-1?'待付 '+fmtBase(Math.abs(myBal)):'已結清';
+  var expRows=myExp.length?myExp.map(function(e){
+    var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);
+    var share=grp.length?b/grp.length:0;var isP=e.payer===name;var net=isP?b-share:-share;
+    var cls=net>0.01?'pos':net<-0.01?'neg':'';
+    var lbl=net>0.01?'+'+baseCur()+' '+fmtN(net):net<-0.01?'−'+baseCur()+' '+fmtN(Math.abs(net)):'±0';
+    return '<div class="exp-row" onclick="openExpDet('+e.id+',\'page-person-det\')">'
+      +'<div class="cat-icon" style="background:'+c.bg+';font-size:18px">'+c.e+'</div>'
+      +'<div class="exp-main"><div class="exp-name">'+e.desc+'</div><div class="exp-meta">'+e.date+'・'+(isP?'付款':'分攤')+' '+fmtBase(share)+'</div></div>'
+      +'<div class="exp-right"><div style="font-size:13px;font-weight:500" class="'+cls+'">'+lbl+'</div><div class="chev">›</div></div></div>';
+  }).join(''):'<div class="empty">無相關花費</div>';
+  document.getElementById('person-det-body').innerHTML=
+    '<div class="det-hero"><div class="av" style="background:'+a.bg+';color:'+a.c+';width:52px;height:52px;font-size:20px">'+name[0]+'</div>'
+    +'<div><div style="font-size:16px;font-weight:500;color:var(--txt);margin-bottom:3px">'+name+'</div>'
+    +'<div style="font-size:15px;font-weight:500" class="'+balCls+'">'+balTxt+'</div></div></div>'
+    +'<div class="pstat-grid">'
+    +'<div class="pstat"><div class="pstat-lbl">花費代墊</div><div class="pstat-val">'+fmtBaseSh(paidByExp)+'</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">應分攤</div><div class="pstat-val">'+fmtBaseSh(totalOwed)+'</div></div>'
+    +(paidByTransfer>0?'<div class="pstat"><div class="pstat-lbl">轉帳付出</div><div class="pstat-val" style="color:var(--red-txt);">'+fmtBaseSh(paidByTransfer)+'</div></div>':'')
+    +(receivedByTransfer>0?'<div class="pstat"><div class="pstat-lbl">轉帳收到</div><div class="pstat-val" style="color:var(--green-txt);">'+fmtBaseSh(receivedByTransfer)+'</div></div>':'')
+    +'<div class="pstat"><div class="pstat-lbl">相關筆數</div><div class="pstat-val">'+myExp.length+' 筆</div></div>'
+    +'<div class="pstat"><div class="pstat-lbl">台幣淨額</div><div class="pstat-val '+(myBal>1?'pos':myBal<-1?'neg':'')+'">'+(Math.abs(myBal)<1?'TWD 0':'TWD '+fmtN(baseToTWD(Math.abs(myBal))))+'</div></div>'
+    +'</div>'
+    +'<div class="sec-head">相關花費（點擊看更多）</div>'+expRows;
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-person-det').classList.add('active');
+}
+
+/* ══ Txn Detail ══ */
+function openTxnDet(fromName,toName,origAmt){
+  var fa=avOf(fromName),ta=avOf(toName);
+  var rel=expenses().filter(function(e){
+    var grp=e.split==='all'?members():e.splitTo;
+    return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);
+  });
+  var rows=rel.length?rel.map(function(e){
+    var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);var share=grp.length?b/grp.length:0;
+    return '<div class="exp-row" onclick="openExpDet('+e.id+',\'page-txn-det\')">'
+      +'<div class="cat-icon" style="background:'+c.bg+';font-size:18px">'+c.e+'</div>'
+      +'<div class="exp-main"><div class="exp-name">'+e.desc+'</div><div class="exp-meta">'+e.date+'・'+e.payer+'付・每人 '+fmtBase(share)+'</div></div>'
+      +'<div class="exp-right"><div class="exp-amt">'+fmtBaseSh(b)+'</div><div class="chev">›</div></div></div>';
+  }).join(''):'<div class="empty">無直接相關花費</div>';
+
+  renderTxnDet(fromName,toName,origAmt,fa,ta,rows);
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-txn-det').classList.add('active');
+}
+
+function srowClick(el){
+  var from=el.getAttribute('data-from');
+  var to=el.getAttribute('data-to');
+  var amt=parseFloat(el.getAttribute('data-amt'));
+  openTxnDet(from,to,amt);
+}
+function togglePersonCard(el){
+  var id=el.getAttribute('data-expand');
+  var panel=document.getElementById(id);
+  var arr=el.querySelector('.settle-arr');
+  if(!panel)return;
+  var open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  if(arr)arr.style.transform=open?'':'rotate(180deg)';
+}
+function personDetBtn(el){
+  try{
+    var enc=el.getAttribute('data-menc');
+    var name=enc?decodeURIComponent(escape(atob(enc))):'';
+    if(name)openPersonDet(name,'page-settle');
+  }catch(e){
+    /* fallback: try data-idx */
+    var idx=parseInt(el.getAttribute('data-idx'));
+    var name2=members()[idx];
+    if(name2)openPersonDet(name2,'page-settle');
+  }
+}
+
+function renderTxnDet(fromName,toName,origAmt,fa,ta,rows){
+  fa=fa||avOf(fromName);ta=ta||avOf(toName);
+
+  /* Suggested amount = origAmt from simplify() — the correct per-pair recommended transfer */
+  var liveOrig=origAmt;
+
+  /* Transfer history for this pair (fromName → toName only) */
+  var t=trip();
+  var history=(t&&t.transfers||[]).filter(function(tr){return tr.from===fromName&&tr.to===toName&&tr.done;});
+  var totalTransferred=history.reduce(function(s,tr){return s+tr.amt;},0);
+  /* remaining = original debt - already transferred */
+  var remaining=Math.max(0,liveOrig-totalTransferred);
+
+  /* History rows */
+  var historyHTML='';
+  if(history.length){
+    historyHTML='<div style="padding:12px 16px;border-bottom:0.5px solid var(--brd);">'
+      +'<div style="font-size:11px;font-weight:500;color:var(--txt3);margin-bottom:8px;">轉帳紀錄（共 '+history.length+' 筆）</div>';
+    history.forEach(function(tr,i){
+      historyHTML+='<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--brd);">'
+        +'<div style="font-size:18px;">💸</div>'
+        +'<div style="flex:1;">'
+        +'<div style="font-size:13px;font-weight:500;color:var(--txt);">'+baseCur()+' '+fmtN(tr.amt)+'</div>'
+        +'<div style="font-size:11px;color:var(--txt3);">'+tr.date+'  ≈ TWD '+fmtN(baseToTWD(tr.amt))+'</div>'
+        +'</div>'
+        +'<span style="font-size:11px;background:var(--green-bg);color:var(--green-txt);padding:2px 8px;border-radius:10px;">✅ 已轉</span>'
+        +'<button data-fenc="'+btoa(unescape(encodeURIComponent(fromName)))+'" data-tenc="'+btoa(unescape(encodeURIComponent(toName)))+'" data-idx="'+i+'" data-orig="'+origAmt+'" onclick="delTxnBtn(this)" '
+        +'style="background:none;border:0.5px solid var(--red-txt);color:var(--red-txt);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">刪除</button>'
+        +'</div>';
+    });
+    historyHTML+='<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;">'
+      +'<div style="font-size:12px;color:var(--txt2);">已轉合計</div>'
+      +'<div style="font-size:14px;font-weight:500;color:var(--green-txt);">'+baseCur()+' '+fmtN(totalTransferred)+'</div>'
+      +'</div>';
+    if(remaining>0.5){
+      historyHTML+='<div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;">'
+        +'<div style="font-size:12px;color:var(--txt2);">尚待轉帳</div>'
+        +'<div style="font-size:14px;font-weight:500;color:var(--red-txt);">'+baseCur()+' '+fmtN(remaining)+'</div>'
+        +'</div>';
+    } else {
+      historyHTML+='<div style="text-align:center;padding-top:6px;font-size:13px;color:var(--green-txt);font-weight:500;">🎉 已全數結清</div>';
+    }
+    historyHTML+='</div>';
+  }
+
+  /* New transfer input — hide if trip is closed OR already fully settled */
+  var isClosed=trip()&&trip().closed;
+  var isSettled=remaining<=0.5&&history.length>0;
+  var newTransferHTML=isClosed
+    ?'<div style="padding:14px 16px;text-align:center;font-size:13px;color:var(--txt3);">📦 旅遊已封存，無法新增轉帳</div>'
+    :isSettled
+    ?'' /* settled: no new transfer input needed */
+    :(function(){
+      var suggestAmt=remaining>0.5?remaining:origAmt;
+      return '<div style="width:100%;background:var(--bg2);border-radius:12px;padding:14px 16px;">'
+        +'<div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:500;">新增轉帳金額（'+baseCur()+'）　上限：'+baseCur()+' '+fmtN(remaining||origAmt)+'</div>'
+        +'<input id="txn-amt-inp" type="number" step="0.01" min="0.01" max="'+(remaining||origAmt)+'" value="'+suggestAmt.toFixed(2)+'" '
+        +'style="width:100%;background:var(--bg);border:0.5px solid var(--brd2);border-radius:8px;padding:10px 12px;font-size:20px;font-weight:500;color:var(--txt);outline:none;text-align:center;box-sizing:border-box;" '
+        +'oninput="updTxnAmt('+origAmt+','+(remaining||origAmt)+')">'
+        +'<div id="txn-twd-lbl" style="font-size:12px;color:var(--txt3);margin-top:5px;text-align:center;">≈ TWD '+fmtN(baseToTWD(suggestAmt))+'</div>'
+        +'<div id="txn-diff-lbl" style="font-size:11px;margin-top:2px;text-align:center;height:16px;"></div>'
+        +'</div>'
+        +'<div style="padding:10px 16px 0;">'
+        +'<button id="txn-transfer-btn" data-from="'+fromName+'" data-to="'+toName+'" data-orig="'+origAmt+'" data-max="'+(remaining||origAmt)+'" onclick="doTransferBtn(this)" '
+        +'style="width:100%;background:var(--green-txt);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">💸 新增這筆轉帳</button>'
+        +'</div>';
+    })();
+  /* Always compute rel for expense count in footer */
+  var rel=expenses().filter(function(e){
+    var grp=e.split==='all'?members():e.splitTo;
+    return (e.payer===toName&&grp.indexOf(fromName)>=0)||(e.payer===fromName&&grp.indexOf(toName)>=0);
+  });
+  if(!rows){
+    rows=rel.length?rel.map(function(e){
+      var c=ccOf(e.cat);var grp=e.split==='all'?members():e.splitTo;var b=toBase(e.amt,e.cur);var share=grp.length?b/grp.length:0;
+      return '<div class="exp-row" onclick="openExpDet('+e.id+',\'page-txn-det\')">'
+        +'<div class="cat-icon" style="background:'+c.bg+';font-size:18px">'+c.e+'</div>'
+        +'<div class="exp-main"><div class="exp-name">'+e.desc+'</div><div class="exp-meta">'+e.date+'・'+e.payer+'付・每人 '+fmtBase(share)+'</div></div>'
+        +'<div class="exp-right"><div class="exp-amt">'+fmtBaseSh(b)+'</div><div class="chev">›</div></div></div>';
+    }).join(''):'<div class="empty">無直接相關花費</div>';
+  }
+
+  document.getElementById('txn-det-body').innerHTML=
+    '<div class="det-hero" style="flex-direction:column;align-items:center;gap:14px;padding:20px 16px 16px;">'
+    +'<div style="display:flex;align-items:center;gap:16px;">'
+    +'<div style="text-align:center;"><div class="av" style="background:'+fa.bg+';color:'+fa.c+';width:48px;height:48px;font-size:18px;margin:0 auto 5px;">'+fromName[0]+'</div><div style="font-size:13px;color:var(--txt2);">'+fromName+'</div></div>'
+    +'<div style="text-align:center;font-size:22px;color:var(--txt3);">→</div>'
+    +'<div style="text-align:center;"><div class="av" style="background:'+ta.bg+';color:'+ta.c+';width:48px;height:48px;font-size:18px;margin:0 auto 5px;">'+toName[0]+'</div><div style="font-size:13px;color:var(--txt2);">'+toName+'</div></div>'
+    +'</div>'
+    +'<div style="text-align:center;">'
+    +'<div style="font-size:12px;color:var(--txt3);">建議轉帳金額</div>'
+    +'<div style="font-size:22px;font-weight:500;color:var(--txt);">'+fmtBase(liveOrig)+'</div>'
+    +'<div style="font-size:12px;color:var(--txt3);">≈ TWD '+fmtN(baseToTWD(liveOrig))+'</div>'
+    +'</div>'
+    +'</div>'
+    +historyHTML
+    +newTransferHTML
+    +'<div class="sec-head">相關花費（'+rel.length+' 筆，點擊看明細）</div>'+rows;
+}
+
+function updTxnAmt(origAmt,maxAmt){
+  var v=parseFloat(document.getElementById('txn-amt-inp').value)||0;
+  document.getElementById('txn-twd-lbl').textContent='≈ TWD '+fmtN(baseToTWD(v));
+  var diffEl=document.getElementById('txn-diff-lbl');
+  var btn=document.getElementById('txn-transfer-btn');
+  if(maxAmt&&v>maxAmt+0.5){
+    diffEl.textContent='⚠ 超過尚待金額 '+baseCur()+' '+fmtN(maxAmt)+'，請修正';
+    diffEl.style.color='var(--red-txt)';
+    if(btn){btn.disabled=true;btn.style.opacity='0.45';}
+    return;
+  }
+  if(btn){btn.disabled=false;btn.style.opacity='';}
+  var diff=v-origAmt;
+  if(Math.abs(diff)>0.5){
+    diffEl.textContent=(diff>0?'較建議金額多 ':'較建議金額少 ')+baseCur()+' '+fmtN(Math.abs(diff));
+    diffEl.style.color=diff>0?'var(--amber-txt)':'var(--blue-mid)';
+  } else {
+    diffEl.textContent='與建議金額一致';
+    diffEl.style.color='var(--green-txt)';
+  }
+}
+
+function doTransferBtn(el){
+  var from=el.getAttribute('data-from');
+  var to=el.getAttribute('data-to');
+  var orig=parseFloat(el.getAttribute('data-orig'));
+  var max=parseFloat(el.getAttribute('data-max'))||orig;
+  doTransfer(from,to,orig,max);
+}
+function delTxnBtn(el){
+  try{
+    var from=decodeURIComponent(escape(atob(el.getAttribute('data-fenc'))));
+    var to=decodeURIComponent(escape(atob(el.getAttribute('data-tenc'))));
+    var idx=parseInt(el.getAttribute('data-idx'));
+    var orig=parseFloat(el.getAttribute('data-orig'));
+    deleteTxnRecord(from,to,idx,orig);
+  }catch(e){console.error('delTxnBtn error:',e);}
+}
+
+function doTransfer(fromName,toName,origAmt,maxAmt){
+  var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再新增轉帳。');return;}
+  var inp=document.getElementById('txn-amt-inp');
+  var finalAmt=parseFloat(inp?inp.value:origAmt)||origAmt;
+  if(finalAmt<=0){alert('請輸入大於 0 的金額');return;}
+  if(maxAmt&&finalAmt>maxAmt+0.5){
+    alert('轉帳金額（'+baseCur()+' '+fmtN(finalAmt)+'）超過尚待金額（'+baseCur()+' '+fmtN(maxAmt)+'），請修正後再確認。');
+    return;
+  }
+  var msg=fromName+' 轉給 '+toName+'\n金額：'+baseCur()+' '+fmtN(finalAmt)+'（≈ TWD '+fmtN(baseToTWD(finalAmt))+'）\n\n確認新增這筆轉帳？';
+  if(!confirm(msg))return;
+  if(!t){return;}
+  if(!t.transfers)t.transfers=[];
+  t.transfers.push({from:fromName,to:toName,amt:finalAmt,date:new Date().toISOString().slice(0,10),done:true});
+  fbSaveTrips();
+  renderTxnDet(fromName,toName,origAmt,null,null,null);
+  setTimeout(function(){renderSettle&&renderSettle();},100);
+}
+
+function deleteTxnRecord(fromName,toName,idx,origAmt){
+  var t=trip();
+  if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再刪除轉帳記錄。');return;}
+  if(!confirm('確定刪除這筆轉帳記錄？'))return;
+  if(!t.transfers||!t.transfers.length)return;
+  /* Find the idx-th record for this pair */
+  var count=-1;
+  var globalIdx=-1;
+  for(var i=0;i<t.transfers.length;i++){
+    var tr=t.transfers[i];
+    if(tr.from===fromName&&tr.to===toName&&tr.done){
+      count++;
+      if(count===idx){globalIdx=i;break;}
+    }
+  }
+  if(globalIdx>=0){
+    t.transfers.splice(globalIdx,1);
+    fbSaveTrips();
+    renderTxnDet(fromName,toName,origAmt,null,null,null);
+    setTimeout(function(){renderSettle&&renderSettle();},100);
+  } else {
+    alert('找不到該筆轉帳記錄，請重新整理後再試。');
+  }
+}
+
+/* ══ Balance & Settle ══ */
+function computeBal(){
+  var b={};members().forEach(function(m){b[m]=0;});
+  expenses().forEach(function(e){
+    var ba=toBase(e.amt,e.cur);b[e.payer]=(b[e.payer]||0)+ba;
+    var grp=e.split==='all'?[].concat(members()):[].concat(e.splitTo);
+    var sh=grp.length?ba/grp.length:0;
+    grp.forEach(function(m){b[m]=(b[m]||0)-sh;});
+  });
+  return b;
+}
+function computeBalAfterTransfers(){
+  var b=computeBal();
+  var transfers=(trip()&&trip().transfers)||[];
+  transfers.forEach(function(tr){
+    if(!tr.done)return;
+    b[tr.from]=(b[tr.from]||0)+tr.amt;
+    b[tr.to]=(b[tr.to]||0)-tr.amt;
+  });
+  /* 小數誤差補正：-1 到 1 之間視為 0 */
+  Object.keys(b).forEach(function(m){
+    if(b[m]>-1&&b[m]<1)b[m]=0;
+  });
+  return b;
+}
+function simplify(bal){
+  var pos=[],neg=[];
+  Object.keys(bal).forEach(function(m){var v=bal[m];if(v>1)pos.push({m:m,v:parseFloat(v.toFixed(2))});else if(v<-1)neg.push({m:m,v:parseFloat((-v).toFixed(2))});});
+  pos.sort(function(a,b){return b.v-a.v;});neg.sort(function(a,b){return b.v-a.v;});
+  var t=[];var i=0,j=0;
+  while(i<pos.length&&j<neg.length){
+    var g=Math.min(pos[i].v,neg[j].v);
+    t.push({from:neg[j].m,to:pos[i].m,amt:parseFloat(g.toFixed(2))});
+    pos[i].v=parseFloat((pos[i].v-g).toFixed(2));neg[j].v=parseFloat((neg[j].v-g).toFixed(2));
+    if(pos[i].v<1)i++;if(neg[j].v<1)j++;
+  }
+  return t;
+}
+function renderSettle(){
+  var balRaw=computeBal();
+  var balAdj=computeBalAfterTransfers();
+  var txnsAll=simplify(balRaw);
+  var transfers=(trip()&&trip().transfers)||[];
+
+  /* ── Summary numbers ── */
+  /* 總花費 = all expenses in base currency */
+  var totalExpense=expenses().reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  var totalOwed=0;
+  members().forEach(function(m){var v=balRaw[m]||0;if(v>1)totalOwed+=v;});
+  var totalTransferred=transfers.filter(function(tr){return tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+  var totalPending=Math.max(0,totalOwed-totalTransferred);
+  var pct=totalOwed>1?Math.min(100,Math.round(totalTransferred/totalOwed*100)):0;
+  var allDone=totalPending<1&&totalOwed>0;
+
+  /* ── Three-cell summary bar ── */
+  function sumCell(label,val,cls){
+    return '<div style="background:var(--bg);padding:12px 8px;text-align:center;">'
+      +'<div style="font-size:10px;color:var(--txt3);margin-bottom:4px;letter-spacing:.03em;">'+label+'</div>'
+      +'<div style="font-size:15px;font-weight:600;color:'+(cls||'var(--txt)')+';">'+fmtBaseSh(val)+'</div>'
+      +'<div style="font-size:10px;color:var(--txt3);">≈ TWD '+fmtN(baseToTWD(val))+'</div>'
+      +'</div>';
+  }
+  var summaryHTML=sumCell('總花費',totalExpense)
+    +sumCell('已轉帳金額',totalTransferred,'var(--green-txt)')
+    +sumCell('待轉帳餘額',totalPending,totalPending>1?'var(--red-txt)':'var(--green-txt)');
+
+  /* Progress bar inside summary */
+  summaryHTML+='<div style="grid-column:span 3;background:var(--bg);padding:6px 14px 10px;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+    +'<span style="font-size:11px;color:var(--txt3);">結算進度</span>'
+    +'<span style="font-size:11px;font-weight:500;color:'+(allDone?'var(--green-txt)':'var(--blue-mid)')+';">'
+    +(allDone?'🎉 全數結清':pct+'%')
+    +'</span></div>'
+    +'<div style="background:var(--bg3);border-radius:20px;height:6px;overflow:hidden;">'
+    +'<div style="width:'+pct+'%;height:100%;border-radius:20px;background:'+(allDone?'var(--green-txt)':'var(--blue-mid)')+';transition:width .4s;"></div>'
+    +'</div></div>';
+
+  document.getElementById('settle-summary').style.gridTemplateColumns='repeat(3,1fr)';
+  document.getElementById('settle-summary').innerHTML=summaryHTML;
+
+  /* ── Balance cards: expandable per-person summary ── */
+  var personCards=members().map(function(m){
+    var vAdj=balAdj[m]||0;
+    var vRaw=balRaw[m]||0;
+    var a=avOf(m);
+    var cls=vAdj>1?'net-pos':vAdj<-1?'net-neg':'net-zero';
+    var amtTxt=vAdj>1?'+'+baseCur()+' '+fmtN(vAdj):vAdj<-1?'−'+baseCur()+' '+fmtN(Math.abs(vAdj)):'±0';
+    var changed=Math.abs(vAdj-vRaw)>1;
+    /* Per-person stats */
+    var pOwed=expenses().reduce(function(s,e){
+      var grp=e.split==='all'?members():e.splitTo;
+      if(grp.indexOf(m)<0)return s;
+      return s+toBase(e.amt,e.cur)/grp.length;
+    },0);
+    var paidByExp=expenses().filter(function(e){return e.payer===m;}).reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+    var pTransOut=(trip()&&trip().transfers||[]).filter(function(tr){return tr.from===m&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+    var pTransIn=(trip()&&trip().transfers||[]).filter(function(tr){return tr.to===m&&tr.done;}).reduce(function(s,tr){return s+tr.amt;},0);
+
+    /* Determine if this person is a net payer (代墊者) or net debtor (欠款者) */
+    var netRaw=balRaw[m]||0; /* positive = paid more than owed = 待收; negative = owes money = 待付 */
+    var isPayer=netRaw>1; /* 代墊者 */
+
+    /* Labels and values differ by role */
+    var cell1Label,cell1Val,cell1Cls;
+    var cell2Label,cell2Val,cell2Cls;
+    var cell3Label,cell3Val,cell3Cls,cell3Txt;
+
+    if(isPayer){
+      /* 代墊者：應分攤=自己的份額, 已轉帳=收到的轉帳, 待轉帳=還沒收到的 */
+      cell1Label='應分攤（自己）'; cell1Val=pOwed; cell1Cls='var(--txt)';
+      cell2Label='已收到轉帳';    cell2Val=pTransIn; cell2Cls='var(--green-txt)';
+      var netPending=Math.max(0,netRaw-pTransIn);
+      cell3Label='待收轉帳';
+      cell3Val=netPending;
+      cell3Cls=netPending>1?'var(--blue-mid)':'var(--green-txt)';
+      cell3Txt=netPending>1?fmtBaseSh(netPending):'✅ 已收清';
+    } else {
+      /* 欠款者：應分攤=要付給別人的, 已轉帳=付出的轉帳, 待轉帳=還沒付的 */
+      var totalDebt=Math.abs(netRaw); /* how much this person owes */
+      cell1Label='應付金額'; cell1Val=totalDebt; cell1Cls='var(--red-txt)';
+      cell2Label='已轉帳';   cell2Val=pTransOut; cell2Cls='var(--green-txt)';
+      var stillOwing=Math.max(0,totalDebt-pTransOut);
+      cell3Label='待轉帳';
+      cell3Val=stillOwing;
+      cell3Cls=stillOwing>1?'var(--red-txt)':'var(--green-txt)';
+      cell3Txt=stillOwing>1?fmtBaseSh(stillOwing):'✅ 結清';
+    }
+
+    var mid=btoa(unescape(encodeURIComponent(m)));
+    var expandId='expand-'+mid;
+    var expandHTML='<div id="'+expandId+'" style="display:none;background:var(--bg2);border-top:0.5px solid var(--brd);padding:10px 12px;">'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">'
+      +'<div style="background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center;">'
+      +'<div style="font-size:9px;color:var(--txt3);margin-bottom:2px;">'+cell1Label+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+cell1Cls+';">'+fmtBaseSh(cell1Val)+'</div></div>'
+      +'<div style="background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center;">'
+      +'<div style="font-size:9px;color:var(--txt3);margin-bottom:2px;">'+cell2Label+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+cell2Cls+';">'+fmtBaseSh(cell2Val)+'</div></div>'
+      +'<div style="background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center;">'
+      +'<div style="font-size:9px;color:var(--txt3);margin-bottom:2px;">'+cell3Label+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+cell3Cls+';">'+cell3Txt+'</div></div>'
+      +'</div>'
+      +(paidByExp>0||pTransIn>0||pTransOut>0?'<div style="font-size:11px;color:var(--txt3);padding-bottom:6px;">'
+        +(paidByExp>0?'代墊花費：'+fmtBaseSh(paidByExp)+'　':'')
+        +(pTransIn>0?'收到轉帳：'+fmtBaseSh(pTransIn)+'　':'')
+        +(pTransOut>0?'付出轉帳：'+fmtBaseSh(pTransOut):'')
+        +'</div>':'')
+      +'<button data-menc="'+btoa(unescape(encodeURIComponent(m)))+'" onclick="personDetBtn(this)" style="width:100%;background:var(--blue-bg);border:0.5px solid var(--brd2);color:var(--blue-txt);border-radius:8px;padding:7px;font-size:12px;font-weight:500;cursor:pointer;">查看完整明細 ›</button>'
+      +'</div>';
+    return '<div style="background:var(--bg);border:0.5px solid var(--brd);border-radius:10px;overflow:hidden;">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;" data-expand="'+expandId+'" onclick="togglePersonCard(this)">'
+      +'<div class="av" style="background:'+a.bg+';color:'+a.c+';width:32px;height:32px;font-size:13px;flex-shrink:0;">'+m[0]+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;font-weight:500;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+m+'</div>'
+      +'<span class="net-badge '+cls+'" style="font-size:11px;padding:1px 6px;">'+amtTxt+'</span>'+(changed?'<span style="font-size:9px;color:var(--txt3);margin-left:3px;">↺</span>':'')
+      +'</div>'
+      +'<span class="settle-arr" style="font-size:13px;color:var(--txt3);transition:transform .2s;">▾</span>'
+      +'</div>'
+      +expandHTML+'</div>';
+  }).join('');
+  document.getElementById('bal-row').innerHTML=personCards;
+
+  /* ── Pending / done rows ── */
+  var txnsPending=simplify(balAdj);
+  var pendingRows=txnsPending.map(function(t){
+    var fa=avOf(t.from),ta=avOf(t.to);
+    return '<div class="srow" data-from="'+t.from+'" data-to="'+t.to+'" data-amt="'+t.amt+'" onclick="srowClick(this)">'
+      +'<div class="av" style="background:'+fa.bg+';color:'+fa.c+'">'+t.from[0]+'</div>'
+      +'<div class="srow-det"><div class="srow-who">'+t.from+' → '+t.to+'</div><div class="srow-sub">≈ TWD '+fmtN(baseToTWD(t.amt))+'</div></div>'
+      +'<div class="av" style="background:'+ta.bg+';color:'+ta.c+'">'+t.to[0]+'</div>'
+      +'<span class="arr-badge">'+fmtBase(t.amt)+'</span><span class="chev">›</span></div>';
+  });
+
+  var doneRows=transfers.filter(function(tr){return tr.done;}).map(function(tr){
+    var fa=avOf(tr.from),ta=avOf(tr.to);
+    return '<div class="srow" style="opacity:0.5;" data-from="'+tr.from+'" data-to="'+tr.to+'" data-amt="'+tr.amt+'" onclick="srowClick(this)">'
+      +'<div class="av" style="background:'+fa.bg+';color:'+fa.c+'">'+tr.from[0]+'</div>'
+      +'<div class="srow-det">'
+      +'<div class="srow-who">'+tr.from+' → '+tr.to+' <span style="font-size:11px;background:#EAF3DE;color:#27500A;padding:1px 7px;border-radius:10px;">✅ 已轉</span></div>'
+      +'<div class="srow-sub">'+tr.date+'・'+fmtBase(tr.amt)+'・≈ TWD '+fmtN(baseToTWD(tr.amt))+'</div>'
+      +'</div>'
+      +'<div class="av" style="background:'+ta.bg+';color:'+ta.c+'">'+tr.to[0]+'</div>'
+      +'<span class="chev">›</span></div>';
+  });
+
+  /* Header label */
+  var headParts=[];
+  if(pendingRows.length)headParts.push('待轉 '+pendingRows.length+' 筆');
+  document.getElementById('settle-head').textContent='轉帳明細'+(headParts.length?'（'+headParts.join('・')+'）':'');
+
+  if(!pendingRows.length){
+    document.getElementById('settle-list').innerHTML='<div class="empty" style="padding:20px 16px;">🎉 所有人已結清，無需轉帳</div>';
+  } else {
+    document.getElementById('settle-list').innerHTML=pendingRows.join('');
+  }
+}
+function copySettle(){
+  var bal=computeBalAfterTransfers();var txns=simplify(bal);
+  var total=expenses().reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+  var txt='【'+trip().name+' 費用結算】\n總花費：'+fmtBase(total)+'（約 TWD '+fmtN(baseToTWD(total))+'）\n成員：'+members().join('、')+'\n\n';
+  if(!txns.length)txt+='大家費用均等，無需轉帳！';
+  else{txt+='轉帳明細：\n';txns.forEach(function(t){txt+=t.from+' → '+t.to+'：'+fmtBase(t.amt)+'（約 TWD '+fmtN(baseToTWD(t.amt))+'）\n';});}
+  navigator.clipboard.writeText(txt).then(function(){alert('結算明細已複製！');}).catch(function(){alert(txt);});
+}
+
+/* ══ Members ══ */
+function renderMembers(){
+  var bal=computeBalAfterTransfers();
+  document.getElementById('mbr-list').innerHTML=members().map(function(m){
+    var a=avOf(m);var v=bal[m]||0;
+    var paid=expenses().filter(function(e){return e.payer===m;}).reduce(function(s,e){return s+toBase(e.amt,e.cur);},0);
+    var st=v>0.01?'待收 '+fmtBaseSh(v):v<-0.01?'待付 '+fmtBaseSh(Math.abs(v)):'已結清';
+    return '<div class="mbr-card"><div class="av" style="background:'+a.bg+';color:'+a.c+';width:40px;height:40px;font-size:14px">'+m[0]+'</div>'
+      +'<div class="mbr-info"><div class="mbr-name">'+m+'</div><div class="mbr-stats">已付 '+fmtBaseSh(paid)+'・'+st+'</div></div>'
+      +'<button class="icon-btn" onclick="delMbr(\''+m+'\')" style="color:var(--txt3);font-size:16px">✕</button></div>';
+  }).join('');
+}
+function addMbr(){var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再修改成員。');return;}var inp=document.getElementById('new-mbr');var name=inp.value.trim();if(!name||members().indexOf(name)>=0)return;t.members.push(name);inp.value='';fbSaveTrips();renderMembers();}
+function delMbr(m){var t=trip();if(t&&t.closed){alert('此旅遊已封存，請先取消封存再修改成員。');return;}if(members().length<=1){alert('至少需要一位成員');return;}t.members=t.members.filter(function(x){return x!==m;});fbSaveTrips();renderMembers();}
+
+/* ══ Add / Edit Expense ══ */
+function initAdd(){
+  var t=trip();if(!t||t.closed){nav('page-home');return;}
+  editingExpId=null;
+  editAmtFresh=false;
+  document.querySelector('#page-add .top-bar h1').textContent='新增花費';
+  document.getElementById('add-save-btn').textContent='儲存花費';
+  amtStr='';catSel='餐飲';splitMode='all';pickedM=[];
+  expAmtCur=baseCur();payerSel=members().length?members()[0]:'';
+  expPhotoDataUrl=null;
+  document.getElementById('exp-photo-preview-wrap').style.display='none';
+  document.getElementById('exp-cam-inp').value='';
+  document.getElementById('exp-file-inp').value='';
+  var todayISO=new Date().toISOString().slice(0,10);
+  document.getElementById('exp-date-from').value=todayISO;
+  document.getElementById('exp-date-to').value='';
+  renderCurSelector();updAmt();renderPayer();renderPick();updSplit();
+  document.getElementById('exp-desc').value='';
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.toggle('sel',b.dataset.cat==='餐飲');});
+  document.querySelectorAll('.tog-btn').forEach(function(b){b.classList.remove('on');});
+  document.querySelector('.tog-btn').classList.add('on');
+  document.getElementById('pick-wrap').style.display='none';
+  var warn=document.getElementById('no-member-warn');
+  var isDefault=members().length===1&&members()[0]==='成員1';
+  var needsWarn=members().length===0||isDefault;
+  if(warn){warn.style.display=needsWarn?'flex':'none';}
+}
+
+function openEditExp(id){
+  if(trip()&&trip().closed){alert('此旅遊已封存，請先取消封存再修改花費。');return;}
+  var e=expenses().find(function(x){return x.id===id;});
+  if(!e)return;
+  editingExpId=id;
+  /* Navigate to add page first so elements exist */
+  document.querySelectorAll('.page').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('page-add').classList.add('active');
+
+  document.querySelector('#page-add .top-bar h1').textContent='修改花費';
+  document.getElementById('add-save-btn').textContent='儲存修改';
+
+  /* Fill form with existing values */
+  amtStr=String(e.amt);
+  editAmtFresh=true; // first digit press will clear the pre-filled amount
+  catSel=e.cat;
+  expAmtCur=e.cur||baseCur();
+  payerSel=e.payer;
+  splitMode=e.split||'all';
+  pickedM=e.split==='pick'?(e.splitTo||[]):[].concat(members());
+  expPhotoDataUrl=e.photo||null;
+
+  document.getElementById('exp-desc').value=e.desc||'';
+  document.getElementById('exp-date-from').value=e.dateFrom||'';
+  document.getElementById('exp-date-to').value=e.dateTo||'';
+
+  renderCurSelector();
+  document.getElementById('amt-box').textContent=amtStr;
+  document.getElementById('rate-box').textContent=rateLabel(expAmtCur);
+  updAmt();
+
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.toggle('sel',b.dataset.cat===catSel);});
+
+  renderPayer();
+  renderPick();
+
+  /* Split mode toggle */
+  document.querySelectorAll('.tog-btn').forEach(function(b){b.classList.remove('on');});
+  var togBtns=document.querySelectorAll('.tog-btn');
+  if(splitMode==='all'&&togBtns[0])togBtns[0].classList.add('on');
+  else if(togBtns[1])togBtns[1].classList.add('on');
+  document.getElementById('pick-wrap').style.display=splitMode==='pick'?'block':'none';
+  updSplit();
+
+  /* Photo preview */
+  if(expPhotoDataUrl){
+    document.getElementById('exp-photo-thumb').src=expPhotoDataUrl;
+    document.getElementById('exp-photo-preview-wrap').style.display='block';
+  } else {
+    document.getElementById('exp-photo-preview-wrap').style.display='none';
+  }
+  document.getElementById('exp-cam-inp').value='';
+  document.getElementById('exp-file-inp').value='';
+
+  var warn=document.getElementById('no-member-warn');
+  if(warn)warn.style.display='none';
+}
+function renderCurSelector(){
+  var bc=baseCur();var shown=[bc];
+  ['AUD','JPY','USD','EUR','TWD','HKD','SGD','KRW','GBP','THB'].forEach(function(c){if(shown.indexOf(c)<0)shown.push(c);});
+  shown=shown.slice(0,6);
+  document.getElementById('cur-selector').innerHTML=shown.map(function(c){
+    return '<button class="cur-pill'+(c===expAmtCur?' sel':'')+'" onclick="selExpCur(\''+c+'\')">'+c+'</button>';
+  }).join('');
+}
+function selExpCur(c){expAmtCur=c;renderCurSelector();updAmt();}
+function np(v){
+  if(editAmtFresh&&v!=='del'){amtStr='';editAmtFresh=false;}
+  if(v==='del'){amtStr=amtStr.slice(0,-1);editAmtFresh=false;}
+  else if(v==='.'){if(amtStr.indexOf('.')<0)amtStr+=v;}
+  else{if(amtStr.indexOf('.')>=0){var p=amtStr.split('.');if(p[1].length>=2)return;}if(amtStr==='0')amtStr=v;else amtStr+=v;}
+  /* Fast update: only change the display box and TWD label, skip full updSplit re-render */
+  var val=parseFloat(amtStr)||0;
+  var baseAmt=toBase(val,expAmtCur);
+  /* Format display: integer part with commas, keep decimal part as-is during typing */
+  var dispStr='0';
+  if(amtStr&&amtStr!==''){
+    var parts=amtStr.split('.');
+    var intPart=parseInt(parts[0]||'0');
+    var formatted=isNaN(intPart)?'0':intPart.toLocaleString();
+    dispStr=formatted+(parts.length>1?'.'+parts[1]:'');
+  }
+  document.getElementById('amt-box').textContent=dispStr;
+  var twdAmt=baseToTWD(baseAmt);
+  var rateStr='';
+  if(expAmtCur!==baseCur())rateStr=expAmtCur+' '+fmtN(val)+' → '+baseCur()+' '+fmtN(baseAmt)+'　｜　';
+  document.getElementById('twd-rate').textContent=rateStr+'≈ TWD '+fmtN(twdAmt);
+  /* Update split amount label only (no DOM rebuild) */
+  var grp=splitMode==='all'?[].concat(members()):(pickedM.length?[].concat(pickedM):[].concat(members()));
+  var sh=grp.length?baseAmt/grp.length:0;
+  document.getElementById('sp-lbl').textContent='每人分攤 '+fmtBase(sh);
+  /* Only rebuild sp-mbrs if amount changed meaningfully */
+  document.getElementById('sp-mbrs').innerHTML=grp.map(function(m){var a=avOf(m);return '<div class="sp-mbr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div><span>'+baseCur()+' '+fmtN(sh)+'</span></div>';}).join('');
+}
+function updAmt(){
+  var val=parseFloat(amtStr)||0;
+  var baseAmt=toBase(val,expAmtCur);
+  /* Format with commas */
+  var dispStr='0';
+  if(amtStr&&amtStr!==''){
+    var parts=amtStr.split('.');
+    var intPart=parseInt(parts[0]||'0');
+    var formatted=isNaN(intPart)?'0':intPart.toLocaleString();
+    dispStr=formatted+(parts.length>1?'.'+parts[1]:'');
+  }
+  document.getElementById('amt-box').textContent=dispStr||'0';
+  document.getElementById('rate-box').textContent=rateLabel(expAmtCur);
+  var twdAmt=baseToTWD(baseAmt);
+  var rateStr='';
+  if(expAmtCur!==baseCur())rateStr=expAmtCur+' '+fmtN(val)+' → '+baseCur()+' '+fmtN(baseAmt)+'　｜　';
+  document.getElementById('twd-rate').textContent=rateStr+'≈ TWD '+fmtN(twdAmt);
+  updSplit();
+}
+function sCat(btn){catSel=btn.dataset.cat;document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.toggle('sel',b===btn);});}
+function renderPayer(){document.getElementById('payer-wrap').innerHTML=members().map(function(m){return '<button class="mbr-pill'+(m===payerSel?' sel':'')+'" onclick="payerSel=\''+m+'\';renderPayer()">'+m+'</button>';}).join('');}
+function renderPick(){document.getElementById('pick-mbr-wrap').innerHTML=members().map(function(m){return '<button class="mbr-pill'+(pickedM.indexOf(m)>=0?' sel':'')+'" onclick="tPick(\''+m+'\')">'+m+'</button>';}).join('');}
+function tPick(m){if(pickedM.indexOf(m)>=0)pickedM=pickedM.filter(function(x){return x!==m;});else pickedM.push(m);renderPick();updSplit();}
+function sSplit(mode,btn){splitMode=mode;document.querySelectorAll('.tog-btn').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');document.getElementById('pick-wrap').style.display=mode==='pick'?'block':'none';updSplit();}
+function updSplit(){
+  var amt=parseFloat(amtStr)||0;var baseAmt=toBase(amt,expAmtCur);
+  var grp=splitMode==='all'?[].concat(members()):(pickedM.length?[].concat(pickedM):[].concat(members()));
+  var sh=grp.length?baseAmt/grp.length:0;
+  document.getElementById('sp-lbl').textContent='每人分攤 '+fmtBase(sh);
+  document.getElementById('sp-mbrs').innerHTML=grp.map(function(m){var a=avOf(m);return '<div class="sp-mbr"><div class="av" style="background:'+a.bg+';color:'+a.c+'">'+m[0]+'</div><span>'+baseCur()+' '+fmtN(sh)+'</span></div>';}).join('');
+}
+function saveExp(){
+  if(trip()&&trip().closed){alert('此旅遊已封存，請先取消封存再儲存花費。');return;}
+  var amt=parseFloat(amtStr);var desc=document.getElementById('exp-desc').value.trim();
+  if(!amt||amt<=0){alert('請輸入金額');return;}
+  if(!desc){alert('請輸入說明');return;}
+  if(!payerSel){alert('請選擇付款人');return;}
+  var grp=splitMode==='pick'&&pickedM.length?[].concat(pickedM):[].concat(members());
+  var dfVal=document.getElementById('exp-date-from').value;
+  var dtVal=document.getElementById('exp-date-to').value;
+  if(dfVal&&dtVal&&dtVal<dfVal){alert('結束日期不能早於開始日期');return;}
+  var dateDisplay=dfVal?fmtDate(dfVal)+(dtVal&&dtVal!==dfVal?' – '+fmtDate(dtVal):''):'';
+  if(!dateDisplay){var n=new Date();dateDisplay=(n.getMonth()+1)+'月'+n.getDate()+'日';}
+
+  if(editingExpId!==null){
+    /* Edit mode: find and update the existing expense */
+    var idx=-1;
+    trip().expenses.forEach(function(e,i){if(e.id===editingExpId)idx=i;});
+    if(idx>=0){
+      var orig=trip().expenses[idx];
+      trip().expenses[idx]=Object.assign({},orig,{
+        desc:desc,cat:catSel,amt:amt,cur:expAmtCur,
+        payer:payerSel,split:splitMode,splitTo:grp,
+        date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,
+        photo:expPhotoDataUrl!==null?expPhotoDataUrl:orig.photo
+      });
+    }
+    editingExpId=null;
+  } else {
+    /* New mode */
+    trip().nextId=(trip().nextId||1)+1;
+    trip().expenses.unshift({id:trip().nextId-1,desc:desc,cat:catSel,amt:amt,cur:expAmtCur,payer:payerSel,split:splitMode,splitTo:grp,date:dateDisplay,dateFrom:dfVal,dateTo:dtVal,photo:expPhotoDataUrl});
+  }
+  fbSaveTrips();
+  nav(expBack==='page-exp-det'?'page-home':expBack||'page-home');
+}
+
+/* ══ Expense Photo ══ */
+function expPhotoChanged(inp){
+  var file=inp.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    expPhotoDataUrl=e.target.result;
+    document.getElementById('exp-photo-thumb').src=expPhotoDataUrl;
+    document.getElementById('exp-photo-preview-wrap').style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+function clearExpPhoto(){
+  expPhotoDataUrl=null;
+  document.getElementById('exp-photo-preview-wrap').style.display='none';
+  document.getElementById('exp-cam-inp').value='';
+  document.getElementById('exp-file-inp').value='';
+}
+
+/* ══ Album ══ */
+function renderAlbum(){
+  var t=trip();if(!t){document.getElementById('photo-grid').innerHTML='';return;}
+  document.getElementById('album-title').textContent=t.emoji+' '+t.name+' 相片簿';
+  var photos=t.photos||[];
+  document.getElementById('album-sub').textContent=photos.length+' 張相片';
+  var grid=document.getElementById('photo-grid');
+  var empty=document.getElementById('album-empty');
+  if(!photos.length){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=photos.map(function(p,i){
+    return '<div class="photo-thumb-wrap">'
+      +'<img class="photo-thumb" src="'+p.src+'" alt="'+(p.cap||'')+'" onclick="openLightbox('+i+')">'
+      +'<button class="photo-del" onclick="albumDelPhoto('+i+')">✕</button>'
+      +'<button onclick="downloadPhoto('+i+')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;" title="下載">⬇</button>'
+      +'<div class="photo-caption">'+(p.cap||p.date||'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function albumAddPhotos(inp){
+  var t=trip();if(!t)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再上傳相片。');inp.value='';return;}
+  if(!t.photos)t.photos=[];
+  var files=Array.prototype.slice.call(inp.files);
+  var today=new Date();var dateStr=(today.getMonth()+1)+'月'+today.getDate()+'日';
+  var loaded=0;
+  files.forEach(function(file){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      t.photos.push({src:e.target.result,date:dateStr,cap:''});
+      loaded++;
+      if(loaded===files.length){fbSaveTrips();renderAlbum();}
+    };
+    reader.readAsDataURL(file);
+  });
+  inp.value='';
+}
+function downloadPhoto(i){
+  var t=trip();if(!t||!t.photos)return;
+  var p=t.photos[i];if(!p)return;
+  downloadPhotoByUrl(p.src,p.cap||p.date||('相片_'+i));
+}
+function downloadPhotoByUrl(src,name){
+  var a=document.createElement('a');
+  a.href=src;
+  /* Determine extension from data URL or default to jpg */
+  var ext='jpg';
+  if(src.indexOf('image/png')>-1)ext='png';
+  else if(src.indexOf('image/gif')>-1)ext='gif';
+  else if(src.indexOf('image/webp')>-1)ext='webp';
+  a.download=(name||'photo').replace(/[/\\:*?"<>|]/g,'_')+'.'+ext;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+function albumDelPhoto(i){
+  var t=trip();if(!t||!t.photos)return;
+  if(t.closed){alert('此旅遊已封存，請先取消封存再刪除相片。');return;}
+  if(!confirm('確定刪除這張相片？'))return;
+  t.photos.splice(i,1);fbSaveTrips();renderAlbum();
+}
+function openLightbox(i){
+  var t=trip();if(!t||!t.photos)return;
+  var p=t.photos[i];
+  document.getElementById('lb-img').src=p.src;
+  document.getElementById('lb-cap').textContent=p.cap||p.date||'';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+
+/* ══ Patch openExpDet to show receipt photo ══ */
+function openLightboxDirect(expId){
+  var e=expenses().find(function(x){return x.id===parseInt(expId);});
+  if(!e||!e.photo)return;
+  document.getElementById('lb-img').src=e.photo;
+  document.getElementById('lb-cap').textContent=e.desc+' ・ '+e.date;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+document.addEventListener('click',function(ev){
+  var dd=document.getElementById('trip-dropdown');
+  var inp=document.getElementById('nt-name');
+  if(dd&&inp&&!dd.contains(ev.target)&&ev.target!==inp){dd.style.display='none';}
+});
+
+/* Firebase listener above handles initial render — no renderTrips() needed here */
+</script>
+</body></html>
