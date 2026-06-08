@@ -958,13 +958,18 @@ function doUnlock(){
     err.textContent='請輸入群組代碼';err.style.display='block';grpInp.focus();return;
   }
   err.textContent='驗證中…';err.style.color='var(--txt3)';err.style.display='block';
-  /* Load password for this group from Firebase */
-  db.ref('groups/'+grp+'/config/password').once('value',function(snap){
-    var storedPw=snap.val();
+  /* First check if group exists and get its password */
+  db.ref('groups/'+grp+'/config').once('value',function(snap){
+    var config=snap.val();
+    var storedPw=config?config.password:null;
     if(!storedPw){
-      /* Group doesn't exist yet — create with default password 123456 */
-      storedPw='123456';
-      db.ref('groups/'+grp+'/config/password').set('123456');
+      /* Group doesn't exist yet — create with entered password */
+      var newPw=pwInp.value;
+      if(!newPw){err.textContent='請輸入密碼';err.style.color='var(--red-txt)';return;}
+      if(newPw.length<4){err.textContent='密碼至少需要 4 個字元';err.style.color='var(--red-txt)';return;}
+      if(!confirm('群組代碼「'+grp+'」尚不存在，確定建立新群組？\n密碼將設定為您輸入的密碼。'))return;
+      storedPw=newPw;
+      db.ref('groups/'+grp+'/config/password').set(newPw);
     }
     if(pwInp.value===storedPw){
       CURRENT_GROUP=grp;
@@ -1028,8 +1033,15 @@ function changeGroupCode(){
   if(newCode===CURRENT_GROUP){showGMsg('新代碼與目前相同',false);return;}
   if(pw!==CURRENT_PW){showGMsg('密碼錯誤',false);return;}
   if(!confirm('確定將群組代碼從「'+CURRENT_GROUP+'」改為「'+newCode+'」？\n\n⚠ 修改後需通知所有成員使用新代碼登入。'))return;
-  /* Copy data to new group path */
-  showGMsg('遷移資料中…','var(--txt3)');
+  /* Check if new group code already exists */
+  showGMsg('檢查代碼是否已存在…','');
+  db.ref('groups/'+newCode+'/config/password').once('value',function(snap){
+    if(snap.val()){
+      showGMsg('❌ 群組代碼「'+newCode+'」已被使用，請換一個代碼',false);
+      return;
+    }
+    /* Safe to migrate — copy data to new group path */
+    showGMsg('遷移資料中…','');
   db.ref('groups/'+CURRENT_GROUP).once('value',function(snap){
     var data=snap.val()||{};
     db.ref('groups/'+newCode).set(data).then(function(){
@@ -1048,6 +1060,7 @@ function changeGroupCode(){
       startGroupListener();
     }).catch(function(){showGMsg('遷移失敗，請重試',false);});
   });
+  }).catch(function(){showGMsg('檢查失敗，請重試',false);});
 }
 
 function toggleLockVis(){
